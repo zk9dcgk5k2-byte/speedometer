@@ -9,227 +9,139 @@
 <title>Shinkansen Speed</title>
 <style>
   :root {
-    --bg: #000000;
-    --surface: #1C1C1E;
-    --surface-2: #2C2C2E;
-    --separator: rgba(84, 84, 88, 0.6);
-    --label: #FFFFFF;
-    --label-2: rgba(235, 235, 245, 0.6);
-    --label-3: rgba(235, 235, 245, 0.3);
-    --blue: #0A84FF;
-    --red: #FF453A;
-    --accent: #0A84FF;        /* set per train */
-    --accent-dim: rgba(10,132,255,0.25);
-    --radius: 14px;
-    --pad: 16px;
+    --bg:#000; --surface:#1C1C1E; --surface-2:#2C2C2E;
+    --separator:rgba(84,84,88,0.6);
+    --label:#fff; --label-2:rgba(235,235,245,0.6); --label-3:rgba(235,235,245,0.3);
+    --blue:#0A84FF; --red:#FF453A; --accent:#3B82F6;
+    --radius:14px; --pad:16px;
   }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--label);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;overscroll-behavior:none}
+  body{min-height:100svh;
+    padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + var(--pad))
+            calc(env(safe-area-inset-bottom) + 12px) calc(env(safe-area-inset-left) + var(--pad));
+    display:flex;flex-direction:column;gap:13px;max-width:560px;margin:0 auto}
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  header{display:flex;align-items:center;justify-content:space-between;min-height:30px}
+  .brand{display:flex;align-items:center;gap:9px}
+  .brand svg{display:block;flex:none}
+  h1{font-size:22px;font-weight:700;letter-spacing:-0.4px;margin:0}
+  .signal{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--label-2)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--label-3);transition:background-color .3s ease}
+  .dot.good{background:#30D158} .dot.fair{background:#FF9F0A} .dot.poor{background:var(--red)}
 
-  html, body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--label);
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overscroll-behavior: none;
-  }
+  .gauge{width:100%;max-width:340px;margin:0 auto}
+  .gauge svg{width:100%;height:auto;display:block;overflow:visible}
+  .track{stroke:var(--surface-2)}
+  .redzone{stroke:rgba(255,69,58,0.35)}
+  .progress{stroke:var(--accent);transition:stroke .5s ease}
+  .tick{stroke:rgba(235,235,245,0.3);stroke-width:2;stroke-linecap:round}
+  .tick-label{fill:rgba(235,235,245,0.3);font-size:10px;font-weight:500;font-variant-numeric:tabular-nums}
+  .limit-line{stroke:var(--red);stroke-width:3;stroke-linecap:round}
+  .limit-label{fill:var(--red);font-size:10px;font-weight:700}
+  .value-text{fill:#fff;font-size:52px;font-weight:600;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .unit-text{fill:rgba(235,235,245,0.6);font-size:12px;font-weight:500;letter-spacing:0.4px}
+  .gauge text{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
 
-  body {
-    min-height: 100svh;
-    padding:
-      calc(env(safe-area-inset-top) + 8px)
-      calc(env(safe-area-inset-right) + var(--pad))
-      calc(env(safe-area-inset-bottom) + 12px)
-      calc(env(safe-area-inset-left) + var(--pad));
-    display: flex;
-    flex-direction: column;
-    gap: 13px;
-    max-width: 560px;
-    margin: 0 auto;
-  }
+  .caption{text-align:center;margin-top:-2px}
+  .caption-name{font-size:15px;font-weight:600;letter-spacing:-0.2px}
+  .caption-sub{font-size:12px;color:var(--label-2);margin-top:2px}
 
-  .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+  .segmented{display:grid;grid-template-columns:1fr 1fr;background:var(--surface-2);
+    border-radius:9px;padding:2px;width:180px;margin:0 auto}
+  .segmented button{appearance:none;border:0;background:transparent;color:var(--label);
+    font:inherit;font-size:13px;font-weight:500;padding:6px 0;border-radius:7px;cursor:pointer;
+    transition:background-color .2s ease}
+  .segmented button[aria-selected="true"]{background:#636366;font-weight:600}
 
-  header {
-    display: flex; align-items: center; justify-content: space-between; min-height: 30px;
-  }
-  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 0; }
-  .signal {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 13px; color: var(--label-2); letter-spacing: -0.1px;
-  }
-  .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--label-3); transition: background-color .3s ease;
-  }
-  .dot.good { background: #30D158; }
-  .dot.fair { background: #FF9F0A; }
-  .dot.poor { background: var(--red); }
+  .card{background:var(--surface);border-radius:var(--radius);padding:13px 16px}
+  .card-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px}
+  .card-title{font-size:13px;font-weight:600;color:var(--label-2)}
+  .card-note{font-size:12px;color:var(--label-3)}
+  #chart{display:block;width:100%;height:100px}
 
-  /* ---------- gauge ---------- */
-  .gauge {
-    position: relative;
-    width: 100%;
-    max-width: 330px;
-    margin: 0 auto;
-    aspect-ratio: 260 / 252;
-  }
-  .gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--separator);
+    border-radius:var(--radius);overflow:hidden}
+  .stat{background:var(--surface);padding:11px 16px}
+  .stat-label{font-size:12px;color:var(--label-2)}
+  .stat-value{font-size:20px;font-weight:600;letter-spacing:-0.4px;margin-top:2px;
+    font-variant-numeric:tabular-nums}
+  .stat-value small{font-size:12px;font-weight:500;color:var(--label-2);letter-spacing:0;margin-left:2px}
 
-  .track { stroke: var(--surface-2); }
-  .redzone { stroke: rgba(255,69,58,0.35); }
-  .progress { stroke: var(--accent); transition: stroke .5s ease; }
-  .tick { stroke: var(--label-3); stroke-width: 2; stroke-linecap: round; }
-  .tick-label {
-    fill: var(--label-3); font-size: 10px; font-weight: 500;
-    font-family: inherit; font-variant-numeric: tabular-nums;
-  }
-  .limit-line { stroke: var(--red); stroke-width: 3; stroke-linecap: round; }
-  .limit-label { fill: var(--red); font-size: 10px; font-weight: 700; font-family: inherit; }
+  .row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px}
+  .row + .row{border-top:1px solid var(--separator)}
+  .row-label{font-size:15px;letter-spacing:-0.2px}
+  .row-hint{font-size:12px;color:var(--label-2);margin-top:1px}
+  select,input[type="number"]{appearance:none;-webkit-appearance:none;background:var(--surface-2);
+    border:0;color:var(--label);font:inherit;font-size:15px;padding:7px 10px;border-radius:8px;
+    max-width:62%;text-align:right;text-align-last:right}
+  input[type="number"]{width:96px}
 
-  .readout {
-    position: absolute; left: 0; right: 0; top: 0;
-    height: 66%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    pointer-events: none;
-  }
-  .value {
-    font-size: clamp(48px, 15.5vw, 66px);
-    font-weight: 600; letter-spacing: -2px; line-height: 1;
-  }
-  .unit {
-    margin-top: 5px; font-size: 13px; font-weight: 500;
-    color: var(--label-2); letter-spacing: 0.3px;
-  }
+  .switch{position:relative;width:51px;height:31px;flex:none}
+  .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .switch span{position:absolute;inset:0;background:#39393D;border-radius:16px;
+    transition:background-color .2s ease;pointer-events:none}
+  .switch span::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;
+    border-radius:50%;background:#fff;transition:transform .2s ease;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+  .switch input:checked + span{background:#30D158}
+  .switch input:checked + span::after{transform:translateX(20px)}
+  .switch input:focus-visible + span{outline:2px solid var(--blue);outline-offset:2px}
 
-  /* ---------- train caption ---------- */
-  .caption { text-align: center; margin-top: -6px; }
-  .caption-name { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
-  .caption-sub { font-size: 12px; color: var(--label-2); margin-top: 2px; }
+  .controls{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:4px}
+  .primary{appearance:none;border:0;width:100%;background:var(--accent);color:#fff;font:inherit;
+    font-size:17px;font-weight:600;letter-spacing:-0.2px;padding:15px;border-radius:13px;cursor:pointer;
+    transition:opacity .15s ease,transform .1s ease,background-color .5s ease}
+  .primary:active{transform:scale(.985);opacity:.85}
+  .primary.stop{background:var(--surface-2)}
+  .ghost{appearance:none;border:0;background:none;color:var(--accent);font:inherit;font-size:15px;
+    padding:4px 12px;cursor:pointer}
+  .ghost:disabled{color:var(--label-3);cursor:default}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:6px}
 
-  /* ---------- segmented ---------- */
-  .segmented {
-    display: grid; grid-template-columns: 1fr 1fr;
-    background: var(--surface-2); border-radius: 9px; padding: 2px;
-    width: 180px; margin: 0 auto;
-  }
-  .segmented button {
-    appearance: none; border: 0; background: transparent; color: var(--label);
-    font: inherit; font-size: 13px; font-weight: 500; padding: 6px 0;
-    border-radius: 7px; cursor: pointer; transition: background-color .2s ease;
-  }
-  .segmented button[aria-selected="true"] { background: #636366; font-weight: 600; }
+  .message{display:none;background:var(--surface);border-radius:var(--radius);padding:13px 16px;
+    font-size:14px;line-height:1.45;color:var(--label-2)}
+  .message.show{display:block}
+  .message strong{color:var(--label);font-weight:600;display:block;margin-bottom:3px}
 
-  /* ---------- cards ---------- */
-  .card { background: var(--surface); border-radius: var(--radius); padding: 13px 16px; }
-  .card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9px; }
-  .card-title { font-size: 13px; font-weight: 600; color: var(--label-2); letter-spacing: -0.1px; }
-  .card-note { font-size: 12px; color: var(--label-3); }
-  #chart { display: block; width: 100%; height: 104px; }
-
-  .stats {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
-    background: var(--separator); border-radius: var(--radius); overflow: hidden;
-  }
-  .stat { background: var(--surface); padding: 11px 16px; }
-  .stat-label { font-size: 12px; color: var(--label-2); }
-  .stat-value { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; margin-top: 2px; }
-  .stat-value small { font-size: 12px; font-weight: 500; color: var(--label-2); letter-spacing: 0; margin-left: 2px; }
-
-  /* ---------- settings rows ---------- */
-  .row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 12px; min-height: 40px;
-  }
-  .row + .row { border-top: 1px solid var(--separator); }
-  .row-label { font-size: 15px; letter-spacing: -0.2px; }
-  .row-hint { font-size: 12px; color: var(--label-2); margin-top: 1px; }
-
-  select, input[type="number"] {
-    appearance: none; -webkit-appearance: none;
-    background: var(--surface-2); border: 0; color: var(--label);
-    font: inherit; font-size: 15px; padding: 7px 10px; border-radius: 8px;
-    max-width: 62%; text-align: right; text-align-last: right;
-  }
-  input[type="number"] { width: 96px; }
-
-  .switch { position: relative; width: 51px; height: 31px; flex: none; }
-  .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-  .switch span {
-    position: absolute; inset: 0; background: #39393D; border-radius: 16px;
-    transition: background-color .2s ease; pointer-events: none;
-  }
-  .switch span::after {
-    content: ''; position: absolute; top: 2px; left: 2px;
-    width: 27px; height: 27px; border-radius: 50%; background: #fff;
-    transition: transform .2s ease; box-shadow: 0 1px 3px rgba(0,0,0,.4);
-  }
-  .switch input:checked + span { background: #30D158; }
-  .switch input:checked + span::after { transform: translateX(20px); }
-  .switch input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
-
-  /* ---------- controls ---------- */
-  .controls { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 4px; }
-  .primary {
-    appearance: none; border: 0; width: 100%; background: var(--accent); color: #fff;
-    font: inherit; font-size: 17px; font-weight: 600; letter-spacing: -0.2px;
-    padding: 15px; border-radius: 13px; cursor: pointer;
-    transition: opacity .15s ease, transform .1s ease, background-color .5s ease;
-  }
-  .primary:active { transform: scale(0.985); opacity: .85; }
-  .primary.stop { background: var(--surface-2); }
-  .ghost {
-    appearance: none; border: 0; background: none; color: var(--accent);
-    font: inherit; font-size: 15px; padding: 4px 12px; cursor: pointer;
-  }
-  .ghost:disabled { color: var(--label-3); cursor: default; }
-
-  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
-
-  .message {
-    display: none; background: var(--surface); border-radius: var(--radius);
-    padding: 13px 16px; font-size: 14px; line-height: 1.45; color: var(--label-2);
-  }
-  .message.show { display: block; }
-  .message strong { color: var(--label); font-weight: 600; display: block; margin-bottom: 3px; }
-
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
-  @media (max-height: 700px) {
-    #chart { height: 84px; }
-    .gauge { max-width: 290px; }
-  }
+  @media (prefers-reduced-motion: reduce){*{transition:none !important}}
+  @media (max-height:720px){#chart{height:78px}.gauge{max-width:296px}}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Shinkansen</h1>
+  <div class="brand">
+    <svg viewBox="0 0 100 100" width="24" height="24" aria-hidden="true">
+      <circle cx="50" cy="50" r="46" fill="none" stroke="currentColor" stroke-opacity="0.35" stroke-width="3"/>
+      <path d="M 16,66 C 30,66 40,50 58,38 C 70,30 82,28 88,30 C 80,40 66,50 52,58 C 40,65 28,68 16,66 Z" fill="currentColor"/>
+      <path d="M 20,76 L 62,76" stroke="currentColor" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>
+      <path d="M 34,84 L 68,84" stroke="currentColor" stroke-opacity="0.3" stroke-width="4" stroke-linecap="round"/>
+    </svg>
+    <h1>Shinkansen</h1>
+  </div>
   <span class="signal"><span class="dot" id="dot"></span><span id="signalText">Not tracking</span></span>
 </header>
 
 <div class="gauge">
-  <svg viewBox="-10 -6 280 258" aria-hidden="true">
-    <path id="track" class="track" fill="none" stroke-width="13" stroke-linecap="round" />
-    <path id="redzone" class="redzone" fill="none" stroke-width="13" stroke-linecap="butt" />
+  <svg viewBox="-12 -8 284 240" id="dial">
+    <path id="track" class="track" fill="none" stroke-width="13" stroke-linecap="round"/>
+    <path id="redzone" class="redzone" fill="none" stroke-width="13"/>
     <g id="ticks"></g>
-    <path id="progress" class="progress" fill="none" stroke-width="13" stroke-linecap="round" />
-    <line id="limitLine" class="limit-line" />
+    <path id="progress" class="progress" fill="none" stroke-width="13" stroke-linecap="round"/>
+    <line id="limitLine" class="limit-line"/>
     <text id="limitLabel" class="limit-label" text-anchor="middle"></text>
-    <g id="trainGroup" transform="translate(50, 186)">
-      <g id="speedlines"></g>
-      <g id="train"></g>
-    </g>
+    <text id="value" class="value-text" x="130" y="134" text-anchor="middle">0</text>
+    <text id="unitLabel" class="unit-text" x="130" y="152" text-anchor="middle">km/h</text>
+    <g id="speedlines"></g>
+    <g id="trainWrap" transform="translate(76,197) scale(0.43)"><g id="train"></g></g>
   </svg>
-  <div class="readout">
-    <div class="value num" id="value">0</div>
-    <div class="unit" id="unitLabel">km/h</div>
-  </div>
 </div>
 
 <div class="caption">
   <div class="caption-name" id="trainName">N700S</div>
-  <div class="caption-sub" id="trainSub">Tokaido Shinkansen · rated 285 km/h</div>
+  <div class="caption-sub" id="trainSub">Sanyo Shinkansen · rated 300 km/h</div>
 </div>
 
 <div class="segmented" role="tablist" aria-label="Units">
@@ -242,28 +154,20 @@
 <div class="card">
   <div class="card-head">
     <span class="card-title">Speed over time</span>
-    <span class="card-note" id="windowNote">Last 2 min</span>
+    <span class="card-note">Last 2 min</span>
   </div>
   <canvas id="chart"></canvas>
 </div>
 
 <div class="stats">
-  <div class="stat">
-    <div class="stat-label">Average</div>
-    <div class="stat-value num" id="avg">0<small id="avgUnit">km/h</small></div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Top speed</div>
-    <div class="stat-value num" id="max">0<small id="maxUnit">km/h</small></div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Distance</div>
-    <div class="stat-value num" id="dist">0<small id="distUnit">km</small></div>
-  </div>
-  <div class="stat">
-    <div class="stat-label">Duration</div>
-    <div class="stat-value num" id="time">0:00</div>
-  </div>
+  <div class="stat"><div class="stat-label">Average</div>
+    <div class="stat-value" id="avg">0<small id="avgUnit">km/h</small></div></div>
+  <div class="stat"><div class="stat-label">Top speed</div>
+    <div class="stat-value" id="max">0<small id="maxUnit">km/h</small></div></div>
+  <div class="stat"><div class="stat-label">Distance</div>
+    <div class="stat-value" id="dist">0<small id="distUnit">km</small></div></div>
+  <div class="stat"><div class="stat-label">Duration</div>
+    <div class="stat-value" id="time">0:00</div></div>
 </div>
 
 <div class="card">
@@ -273,14 +177,12 @@
   </div>
   <div class="row" id="customRow" style="display:none">
     <label class="row-label" for="customMax">Rated top speed</label>
-    <input type="number" id="customMax" min="20" max="700" step="5" value="300" inputmode="numeric" />
+    <input type="number" id="customMax" min="20" max="700" step="5" value="300" inputmode="numeric"/>
   </div>
   <div class="row">
-    <div>
-      <div class="row-label">Auto-scale dial</div>
-      <div class="row-hint">Off: fixed at rated speed + 10%</div>
-    </div>
-    <label class="switch"><input type="checkbox" id="autoScale" /><span></span></label>
+    <div><div class="row-label">Auto-scale dial</div>
+      <div class="row-hint">Off: fixed at rated speed + 10%</div></div>
+    <label class="switch"><input type="checkbox" id="autoScale"/><span></span></label>
   </div>
 </div>
 
@@ -293,538 +195,412 @@
 (function () {
   'use strict';
 
-  // ============ train roster ============
-  // rated = maximum service speed in km/h
-  var TRAINS = [
-    { id:'n700s',    group:'JR Central / JR West', name:'N700S',        line:'Tokaido Shinkansen',      rated:285, accent:'#3B82F6', body:'#F2F4F7', stripe:'#0F3E8C', window:'#16202E', nose:88 },
-    { id:'n700s-sy', group:'JR Central / JR West', name:'N700S',        line:'Sanyo Shinkansen',        rated:300, accent:'#3B82F6', body:'#F2F4F7', stripe:'#0F3E8C', window:'#16202E', nose:88 },
-    { id:'n700a',    group:'JR Central / JR West', name:'N700A',        line:'Tokaido Shinkansen',      rated:285, accent:'#60A5FA', body:'#F2F4F7', stripe:'#123E85', window:'#16202E', nose:80 },
-    { id:'500',      group:'JR Central / JR West', name:'500 Series',   line:'Sanyo Kodama',            rated:285, accent:'#9CA3AF', body:'#D7DBE0', stripe:'#2C3E8F', window:'#111826', nose:120 },
-    { id:'700',      group:'JR Central / JR West', name:'700 Series',   line:'Sanyo Hikari Rail Star',  rated:285, accent:'#94A3B8', body:'#E6E9EE', stripe:'#1F2937', window:'#151C28', nose:70 },
-    { id:'e5',       group:'JR East',              name:'E5 Hayabusa',  line:'Tohoku Shinkansen',       rated:320, accent:'#34D399', body:'#EDF1F4', stripe:'#E5007F', window:'#0E3B2C', nose:110 },
-    { id:'h5',       group:'JR East',              name:'H5 Hayabusa',  line:'Hokkaido Shinkansen',     rated:320, accent:'#A78BFA', body:'#EDF1F4', stripe:'#7C3AED', window:'#0E3B2C', nose:110 },
-    { id:'e6',       group:'JR East',              name:'E6 Komachi',   line:'Akita Shinkansen',        rated:320, accent:'#F87171', body:'#F0F2F5', stripe:'#C0202E', window:'#1A1F2B', nose:100 },
-    { id:'e7',       group:'JR East',              name:'E7 / W7',      line:'Hokuriku Shinkansen',     rated:275, accent:'#D9A05B', body:'#F4EFE6', stripe:'#12294E', window:'#131B2A', nose:78 },
-    { id:'e3',       group:'JR East',              name:'E3 Tsubasa',   line:'Yamagata Shinkansen',     rated:275, accent:'#C084FC', body:'#EDEFF2', stripe:'#6D28D9', window:'#1A1F2B', nose:72 },
-    { id:'e2',       group:'JR East',              name:'E2 Series',    line:'Joetsu Shinkansen',       rated:275, accent:'#67E8F9', body:'#EEF1F5', stripe:'#0E7490', window:'#151C28', nose:74 },
-    { id:'800',      group:'JR Kyushu',            name:'800 Series',   line:'Kyushu Shinkansen',       rated:260, accent:'#FB7185', body:'#F7F7F5', stripe:'#B91C1C', window:'#1B1B1B', nose:60 },
-    { id:'n700s-8k', group:'JR Kyushu',            name:'N700S Kamome', line:'Nishi Kyushu Shinkansen', rated:260, accent:'#F87171', body:'#F7F7F5', stripe:'#991B1B', window:'#171717', nose:88 },
-    { id:'l0',       group:'Maglev',               name:'L0 Series',    line:'Chuo Shinkansen (maglev)',rated:500, accent:'#22D3EE', body:'#E9EEF4', stripe:'#0B4FA0', window:'#0F2033', nose:140 },
-    { id:'custom',   group:'Other',                name:'Custom',       line:'Set your own rated speed',rated:300, accent:'#0A84FF', body:'#E8EAED', stripe:'#4B5563', window:'#1A1F2B', nose:80 }
-  ];
+  var TRAINS = [{"id":"n700s","name":"N700S","line":"Sanyo Shinkansen","rated":300,"nose":80,"accent":"#3B82F6","base":"#F3F5F8","window":"#141B26","panto":true,"bands":[[10,14.5,"#C6CCD5"],[27.0,30.5,"#123A87"],[41.5,44,"#123A87"]],"group":"JR Central / JR West"},{"id":"n700s-tk","name":"N700S","line":"Tokaido Shinkansen","rated":285,"nose":80,"accent":"#3B82F6","base":"#F3F5F8","window":"#141B26","panto":true,"bands":[[10,14.5,"#C6CCD5"],[27.0,30.5,"#123A87"],[41.5,44,"#123A87"]],"group":"JR Central / JR West"},{"id":"n700a","name":"N700A","line":"Tokaido / Sanyo","rated":285,"nose":74,"accent":"#60A5FA","base":"#F3F5F8","window":"#141B26","panto":true,"bands":[[10,14.5,"#C6CCD5"],[27.0,30.5,"#1546A0"],[41.5,44,"#1546A0"]],"group":"JR Central / JR West"},{"id":"700","name":"700 Series","line":"Sanyo Kodama","rated":285,"nose":62,"accent":"#94A3B8","base":"#EDF0F4","window":"#151C28","panto":true,"bands":[[10,14.5,"#BFC6CF"],[27.0,30.5,"#1F3557"],[41.5,44,"#1F3557"]],"group":"JR Central / JR West"},{"id":"500","name":"500 Series","line":"Sanyo Kodama","rated":285,"nose":132,"accent":"#9CA3AF","base":"#DEE3E9","window":"#111826","panto":true,"bands":[[10,16,"#8E97A3"],[26.5,31.0,"#2B3C8C"],[41.5,44,"#5C6470"]],"group":"JR Central / JR West"},{"id":"e5","name":"E5 Hayabusa","line":"Tohoku","rated":320,"nose":118,"accent":"#34D399","base":"#F2F4F6","window":"#0A2A20","panto":true,"bands":[[10,26.5,"#0E5540"],[26.5,30.0,"#E4007F"],[41.5,44,"#0E5540"]],"group":"JR East"},{"id":"h5","name":"H5 Hayabusa","line":"Hokkaido","rated":320,"nose":118,"accent":"#A78BFA","base":"#F2F4F6","window":"#0A2A20","panto":true,"bands":[[10,26.5,"#0E5540"],[26.5,30.0,"#7B3FBF"],[41.5,44,"#0E5540"]],"group":"JR East"},{"id":"e6","name":"E6 Komachi","line":"Akita","rated":320,"nose":110,"accent":"#F87171","base":"#F4F5F7","window":"#20141A","panto":true,"bands":[[10,26.0,"#B01B27"],[26.0,30.0,"#EDEFF2"],[41.5,44,"#B01B27"]],"group":"JR East"},{"id":"e7","name":"E7 / W7","line":"Hokuriku","rated":275,"nose":72,"accent":"#D9A05B","base":"#F5F1E8","window":"#111B2C","panto":true,"bands":[[10,16.5,"#14294E"],[26.8,30.2,"#A9683B"],[41.5,44,"#14294E"]],"group":"JR East"},{"id":"e3","name":"E3 Tsubasa","line":"Yamagata","rated":275,"nose":64,"accent":"#C084FC","base":"#EEF0F3","window":"#1A1424","panto":true,"bands":[[10,16.0,"#4B2470"],[26.8,30.2,"#6D28D9"],[41.5,44,"#C9A227"]],"group":"JR East"},{"id":"e2","name":"E2 Series","line":"Joetsu","rated":275,"nose":66,"accent":"#67E8F9","base":"#EFF2F5","window":"#111C28","panto":true,"bands":[[10,16.0,"#123B4A"],[26.8,30.2,"#E4007F"],[41.5,44,"#0E7490"]],"group":"JR East"},{"id":"800","name":"800 Series","line":"Kyushu","rated":260,"nose":56,"accent":"#FB7185","base":"#FAF9F6","window":"#1B1B1B","panto":true,"bands":[[10,14.5,"#E8E5DE"],[26.8,30.5,"#B3141F"],[41.5,44,"#1A1A1A"]],"group":"JR Kyushu"},{"id":"n700s8k","name":"N700S Kamome","line":"Nishi Kyushu","rated":260,"nose":80,"accent":"#F87171","base":"#FAFAF8","window":"#171717","panto":true,"bands":[[10,14.5,"#E2E0DA"],[27.0,30.5,"#9E1B1B"],[41.5,44,"#1C1C1C"]],"group":"JR Kyushu"},{"id":"l0","name":"L0 Series","line":"Chuo maglev","rated":500,"nose":140,"accent":"#22D3EE","base":"#EDF1F6","window":"#0E2033","panto":false,"bands":[[10,15.0,"#B9C3D0"],[26.5,31.0,"#0B4FA0"],[41.0,44,"#0B4FA0"]],"group":"Maglev"},{"id":"custom","name":"Custom","line":"Set your own rated speed","rated":300,"nose":80,"accent":"#0A84FF","base":"#F1F3F6","window":"#141B26","panto":true,"bands":[[10,14.5,"#C6CCD5"],[27.0,30.5,"#3F4A5A"],[41.5,44,"#3F4A5A"]],"group":"Other"}];
 
-  // ============ tuning / plausibility ============
-  var WINDOW_MS   = 120000;
-  var NOISE_FLOOR = 0.6;     // m/s, below this = stationary
-  var MAX_ACC     = 45;      // m, reject fixes worse than this
-  var HARD_MAX    = 180;     // m/s (648 km/h) — nothing on rails goes faster
-  var MAX_ACCEL   = 3.5;     // m/s^2 — a Shinkansen does ~0.7; this is a generous ceiling
-  var MAX_GAP     = 4;       // s — longer gap means the receiver re-acquired (tunnel exit)
-  var SETTLE_MS   = 2500;    // ms of distrust after a re-acquisition
-  var SMOOTHING   = 0.3;
+  // ---- tuning ----
+  var WINDOW_MS=120000, NOISE_FLOOR=0.6, MAX_ACC=45, HARD_MAX=180,
+      MAX_ACCEL=3.5, MAX_GAP=4, SETTLE_MS=2500, SMOOTHING=0.3;
 
-  // ============ state ============
-  var train = TRAINS[0];
-  var autoScale = false;
-  var tracking = false, watchId = null, wakeLock = null;
-  var unit = 'kmh';
-  var samples = [], rawSpeed = 0, shownSpeed = 0, topSpeed = 0;
-  var distance = 0, elapsed = 0, startedAt = 0;
-  var lastFix = null, lastGoodSpeed = null, reacquiredAt = 0;
-  var scaleMax = 320;        // in current display unit
-  var lineDash = 0;
+  // ---- state ----
+  var train=TRAINS[0], autoScale=false, tracking=false, watchId=null, wakeLock=null, unit='kmh';
+  var samples=[], rawSpeed=0, shownSpeed=0, topSpeed=0, distance=0, elapsed=0, startedAt=0;
+  var lastFix=null, lastGoodSpeed=null, reacquiredAt=0, scaleMax=340, lineDash=0;
 
-  var $ = function (id) { return document.getElementById(id); };
-  var elValue=$('value'), elUnit=$('unitLabel'), elAvg=$('avg'), elMax=$('max'),
-      elDist=$('dist'), elTime=$('time'), elDot=$('dot'), elSignal=$('signalText'),
-      elStart=$('startStop'), elReset=$('reset'), elMsg=$('message'),
-      elProgress=$('progress'), elTrack=$('track'), elRed=$('redzone'), elTicks=$('ticks'),
-      elLimitLine=$('limitLine'), elLimitLabel=$('limitLabel'),
+  var $=function(id){return document.getElementById(id);};
+  var elValue=$('value'), elUnit=$('unitLabel'), elAvg=$('avg'), elMax=$('max'), elDist=$('dist'),
+      elTime=$('time'), elDot=$('dot'), elSignal=$('signalText'), elStart=$('startStop'),
+      elReset=$('reset'), elMsg=$('message'), elProgress=$('progress'), elTrack=$('track'),
+      elRed=$('redzone'), elTicks=$('ticks'), elLimitLine=$('limitLine'), elLimitLabel=$('limitLabel'),
       canvas=$('chart'), ctx=canvas.getContext('2d');
-
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // ============ geometry ============
+  // ================= dial geometry =================
   var CX=130, CY=118, R=96, START=135, SWEEP=270;
-  var ARC_LEN = 2 * Math.PI * R * (SWEEP/360);
-
-  function polar(deg, r) {
-    var a = deg * Math.PI / 180;
-    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
+  var ARC_LEN = 2*Math.PI*R*(SWEEP/360);
+  function polar(d,r){var a=d*Math.PI/180;return [CX+r*Math.cos(a), CY+r*Math.sin(a)];}
+  function arcPath(r,f,t){
+    var s=polar(f,r), e=polar(t,r), large=(t-f)>180?1:0;
+    return 'M '+s[0].toFixed(1)+' '+s[1].toFixed(1)+' A '+r+' '+r+' 0 '+large+' 1 '+e[0].toFixed(1)+' '+e[1].toFixed(1);
   }
-  function arcPath(r, fromDeg, toDeg) {
-    var s = polar(fromDeg, r), e = polar(toDeg, r);
-    var large = (toDeg - fromDeg) > 180 ? 1 : 0;
-    return 'M ' + s[0].toFixed(2) + ' ' + s[1].toFixed(2) +
-           ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + e[0].toFixed(2) + ' ' + e[1].toFixed(2);
-  }
-
-  elTrack.setAttribute('d', arcPath(R, START, START + SWEEP));
-  elProgress.setAttribute('d', arcPath(R, START, START + SWEEP));
+  elTrack.setAttribute('d', arcPath(R,START,START+SWEEP));
+  elProgress.setAttribute('d', arcPath(R,START,START+SWEEP));
   elProgress.style.strokeDasharray = ARC_LEN;
   elProgress.style.strokeDashoffset = ARC_LEN;
 
-  // ============ units ============
-  function toUnit(ms) { return unit === 'kmh' ? ms * 3.6 : ms * 2.236936; }
-  function ratedInUnit() { return unit === 'kmh' ? ratedKmh() : ratedKmh() * 0.6213712; }
-  function speedUnitLabel() { return unit === 'kmh' ? 'km/h' : 'mph'; }
-  function distUnitLabel() { return unit === 'kmh' ? 'km' : 'mi'; }
-  function toDistUnit(m) { return unit === 'kmh' ? m/1000 : m/1609.344; }
-  function ratedKmh() {
-    return train.id === 'custom' ? Math.max(20, Number($('customMax').value) || 300) : train.rated;
+  // ================= train artwork =================
+  var BODY_L=250, BOT=44;
+  function bodyPath(n){
+    return 'M 2,34.2 C '+(n*0.16).toFixed(1)+',29.2 '+(n*0.40).toFixed(1)+',18.2 '+(n*0.66).toFixed(1)+',13.0'
+         + ' C '+(n*0.80).toFixed(1)+',10.9 '+(n*0.91).toFixed(1)+',10 '+n.toFixed(1)+',10'
+         + ' L '+(BODY_L-11)+',10 Q '+BODY_L+',10 '+BODY_L+',16'
+         + ' L '+BODY_L+','+BOT+' L 9.5,'+BOT
+         + ' C 4.2,'+BOT+' 2,40.4 2,35.4 Z';
   }
 
-  function baseScale() { return Math.ceil(ratedInUnit() * 1.1 / 20) * 20; }
+  function drawTrain(){
+    var t=train, n=t.nose, p=bodyPath(n), o=[];
 
-  function computeScale() {
-    var base = baseScale();
-    if (!autoScale) return base;
-    var peak = toUnit(Math.max(topSpeed, rawSpeed));
-    if (peak <= base * 0.97) return base;
-    return Math.ceil(peak * 1.08 / 20) * 20;
+    o.push('<defs><clipPath id="clipT"><path d="'+p+'"/></clipPath>');
+    o.push('<linearGradient id="shadeT" x1="0" y1="0" x2="0" y2="1">'
+      +'<stop offset="0" stop-color="#fff" stop-opacity="0.40"/>'
+      +'<stop offset="0.30" stop-color="#fff" stop-opacity="0.06"/>'
+      +'<stop offset="0.62" stop-color="#000" stop-opacity="0.02"/>'
+      +'<stop offset="1" stop-color="#000" stop-opacity="0.26"/></linearGradient>');
+    o.push('<linearGradient id="glassT" x1="0" y1="0" x2="0" y2="1">'
+      +'<stop offset="0" stop-color="#5C7185" stop-opacity="0.95"/>'
+      +'<stop offset="0.45" stop-color="'+t.window+'"/>'
+      +'<stop offset="1" stop-color="'+t.window+'"/></linearGradient></defs>');
+
+    o.push('<g clip-path="url(#clipT)">');
+    o.push('<rect x="0" y="0" width="'+BODY_L+'" height="60" fill="'+t.base+'"/>');
+    t.bands.forEach(function(b){
+      o.push('<rect x="0" y="'+b[0]+'" width="'+BODY_L+'" height="'+(b[1]-b[0])+'" fill="'+b[2]+'"/>');
+    });
+
+    var wx0=n*0.98, wx1=BODY_L-13;
+    o.push('<rect x="'+wx0.toFixed(1)+'" y="17.2" width="'+(wx1-wx0).toFixed(1)+'" height="8.2" rx="2.4" fill="url(#glassT)"/>');
+    var x=wx0+21, i=0;
+    while(x < wx1-8){
+      var w = (i%3) ? 5.0 : 7.5;
+      o.push('<rect x="'+x.toFixed(1)+'" y="16.8" width="'+w+'" height="9" fill="'+t.base+'" opacity="0.95"/>');
+      if(i%3===0) o.push('<rect x="'+(x+1.2).toFixed(1)+'" y="10" width="'+(w-2.4).toFixed(1)+'" height="34" fill="#000" opacity="0.10"/>');
+      x+=26; i++;
+    }
+
+    o.push('<path d="M '+(n*0.31).toFixed(1)+',26.6 C '+(n*0.43).toFixed(1)+',21.2 '+(n*0.57).toFixed(1)+',16.4 '
+      +(n*0.73).toFixed(1)+',13.9 L '+(n*0.82).toFixed(1)+',16.4 C '+(n*0.64).toFixed(1)+',19.4 '
+      +(n*0.50).toFixed(1)+',24.0 '+(n*0.42).toFixed(1)+',28.6 Z" fill="url(#glassT)"/>');
+    o.push('<ellipse cx="'+(n*0.21).toFixed(1)+'" cy="30.6" rx="4.6" ry="2.3" fill="#FFF3CE" opacity="0.95" transform="rotate(-14 '+(n*0.21).toFixed(1)+' 30.6)"/>');
+    o.push('<ellipse cx="'+(n*0.13).toFixed(1)+'" cy="33.4" rx="2.6" ry="1.5" fill="#FFE9A8" opacity="0.7" transform="rotate(-14 '+(n*0.13).toFixed(1)+' 33.4)"/>');
+    o.push('<rect x="0" y="0" width="'+BODY_L+'" height="60" fill="url(#shadeT)"/>');
+    o.push('<path d="M '+(n*0.55).toFixed(1)+',14.6 C '+(n*0.8).toFixed(1)+',11.8 '+n.toFixed(1)+',11.4 '+(BODY_L-14)+',11.4" stroke="#fff" stroke-opacity="0.5" stroke-width="1.3" fill="none" stroke-linecap="round"/>');
+    o.push('</g>');
+
+    o.push('<path d="'+p+'" fill="none" stroke="#000" stroke-opacity="0.30" stroke-width="0.8"/>');
+    o.push('<rect x="'+(n+14).toFixed(1)+'" y="43.4" width="33" height="5.2" rx="2.2" fill="#1E222A"/>');
+    o.push('<rect x="'+(BODY_L-52)+'" y="43.4" width="33" height="5.2" rx="2.2" fill="#1E222A"/>');
+    o.push('<rect x="'+(n+19).toFixed(1)+'" y="46.4" width="23" height="2.6" rx="1.3" fill="#3A4049"/>');
+    o.push('<rect x="'+(BODY_L-47)+'" y="46.4" width="23" height="2.6" rx="1.3" fill="#3A4049"/>');
+
+    if(t.panto){
+      var px=BODY_L*0.60;
+      o.push('<g stroke="#6B7280" stroke-width="1.4" fill="none" stroke-linecap="round">'
+        +'<path d="M '+px+',10 L '+(px+9)+',4.6"/><path d="M '+(px+9)+',4.6 L '+(px+20)+',4.6"/>'
+        +'<path d="M '+(px+13)+',10 L '+(px+9)+',4.6"/></g>'
+        +'<rect x="'+(px-2)+'" y="8.6" width="22" height="2" rx="1" fill="#4B5563"/>');
+    }
+    $('train').innerHTML = o.join('');
+
+    // motion streaks ahead of the nose, in dial coordinates
+    $('speedlines').innerHTML =
+       '<line x1="52" y1="204" x2="70" y2="204" stroke="'+t.accent+'" stroke-width="2" stroke-linecap="round"/>'
+      +'<line x1="46" y1="209" x2="66" y2="209" stroke="'+t.accent+'" stroke-width="2" stroke-linecap="round"/>'
+      +'<line x1="55" y1="214" x2="72" y2="214" stroke="'+t.accent+'" stroke-width="2" stroke-linecap="round"/>';
+    $('speedlines').setAttribute('opacity','0');
   }
 
-  // ============ dial rendering ============
-  function drawDial() {
+  // ================= units & scale =================
+  function toUnit(ms){return unit==='kmh' ? ms*3.6 : ms*2.236936;}
+  function ratedKmh(){return train.id==='custom' ? Math.max(20, Number($('customMax').value)||300) : train.rated;}
+  function ratedInUnit(){return unit==='kmh' ? ratedKmh() : ratedKmh()*0.6213712;}
+  function speedUnitLabel(){return unit==='kmh' ? 'km/h' : 'mph';}
+  function distUnitLabel(){return unit==='kmh' ? 'km' : 'mi';}
+  function toDistUnit(m){return unit==='kmh' ? m/1000 : m/1609.344;}
+  function baseScale(){return Math.ceil(ratedInUnit()*1.1/20)*20;}
+  function computeScale(){
+    var base=baseScale();
+    if(!autoScale) return base;
+    var peak=toUnit(Math.max(topSpeed,rawSpeed));
+    return peak<=base*0.97 ? base : Math.ceil(peak*1.08/20)*20;
+  }
+
+  function drawDial(){
     scaleMax = computeScale();
-    var svgns = 'http://www.w3.org/2000/svg';
-
-    // ticks + labels (labels sit OUTSIDE the ring so they never touch the readout)
-    elTicks.textContent = '';
-    for (var i = 0; i <= 8; i++) {
-      var ang = START + SWEEP * i / 8;
-      var major = i % 2 === 0;
-      var p1 = polar(ang, R - 11), p2 = polar(ang, R - (major ? 18 : 15));
-      var ln = document.createElementNS(svgns, 'line');
-      ln.setAttribute('x1', p1[0].toFixed(2)); ln.setAttribute('y1', p1[1].toFixed(2));
-      ln.setAttribute('x2', p2[0].toFixed(2)); ln.setAttribute('y2', p2[1].toFixed(2));
-      ln.setAttribute('class', 'tick');
-      if (!major) ln.setAttribute('opacity', '0.45');
+    var ns='http://www.w3.org/2000/svg';
+    elTicks.textContent='';
+    for(var i=0;i<=8;i++){
+      var ang=START+SWEEP*i/8, major=(i%2===0);
+      var p1=polar(ang,R-11), p2=polar(ang,R-(major?18:15));
+      var ln=document.createElementNS(ns,'line');
+      ln.setAttribute('x1',p1[0].toFixed(1)); ln.setAttribute('y1',p1[1].toFixed(1));
+      ln.setAttribute('x2',p2[0].toFixed(1)); ln.setAttribute('y2',p2[1].toFixed(1));
+      ln.setAttribute('class','tick');
+      if(!major) ln.setAttribute('opacity','0.45');
       elTicks.appendChild(ln);
-
-      if (major) {
-        var lp = polar(ang, R + 15);
-        var t = document.createElementNS(svgns, 'text');
-        t.setAttribute('x', lp[0].toFixed(2));
-        t.setAttribute('y', (lp[1] + 3.5).toFixed(2));
-        t.setAttribute('text-anchor', 'middle');
-        t.setAttribute('class', 'tick-label');
-        t.textContent = Math.round(scaleMax * i / 8);
-        elTicks.appendChild(t);
+      // no labels at the ends — that gap belongs to the train
+      if(major && i!==0 && i!==8){
+        var lp=polar(ang,R+15);
+        var tx=document.createElementNS(ns,'text');
+        tx.setAttribute('x',lp[0].toFixed(1)); tx.setAttribute('y',(lp[1]+3.5).toFixed(1));
+        tx.setAttribute('text-anchor','middle'); tx.setAttribute('class','tick-label');
+        tx.textContent=Math.round(scaleMax*i/8);
+        elTicks.appendChild(tx);
       }
     }
-
-    // red zone above the rated speed
-    var frac = Math.min(ratedInUnit() / scaleMax, 1);
-    var limitAng = START + SWEEP * frac;
-    if (frac < 0.999) {
-      elRed.setAttribute('d', arcPath(R, limitAng, START + SWEEP));
-      elRed.style.display = '';
-    } else {
-      elRed.style.display = 'none';
-    }
-
-    // rated-speed marker
-    var a = polar(limitAng, R - 9), b = polar(limitAng, R + 9);
-    elLimitLine.setAttribute('x1', a[0].toFixed(2)); elLimitLine.setAttribute('y1', a[1].toFixed(2));
-    elLimitLine.setAttribute('x2', b[0].toFixed(2)); elLimitLine.setAttribute('y2', b[1].toFixed(2));
-    var lab = polar(limitAng, R + 28);
-    elLimitLabel.setAttribute('x', lab[0].toFixed(2));
-    elLimitLabel.setAttribute('y', (lab[1] + 3.5).toFixed(2));
-    elLimitLabel.textContent = Math.round(ratedInUnit());
+    var frac=Math.min(ratedInUnit()/scaleMax,1), ang2=START+SWEEP*frac;
+    if(frac<0.999){ elRed.setAttribute('d',arcPath(R,ang2,START+SWEEP)); elRed.style.display=''; }
+    else elRed.style.display='none';
+    var a=polar(ang2,R-9), b=polar(ang2,R+9), lab=polar(ang2,R+28);
+    elLimitLine.setAttribute('x1',a[0].toFixed(1)); elLimitLine.setAttribute('y1',a[1].toFixed(1));
+    elLimitLine.setAttribute('x2',b[0].toFixed(1)); elLimitLine.setAttribute('y2',b[1].toFixed(1));
+    elLimitLabel.setAttribute('x',lab[0].toFixed(1)); elLimitLabel.setAttribute('y',(lab[1]+3.5).toFixed(1));
+    elLimitLabel.textContent=Math.round(ratedInUnit());
   }
 
-  // ============ train silhouette ============
-  function drawTrain() {
-    var g = $('train'), sl = $('speedlines');
-    var n = train.nose, L = 160;
-    g.innerHTML =
-      // body
-      '<path d="M 2,25 C ' + (n*0.42) + ',25 ' + (n*0.62) + ',9.5 ' + n + ',8 ' +
-      'L ' + (L-8) + ',8 Q ' + L + ',8 ' + L + ',13 L ' + L + ',26 Q ' + L + ',29 ' + (L-4) + ',29 ' +
-      'L 6,29 Q 2,29 2,25 Z" fill="' + train.body + '"/>' +
-      // window band
-      '<path d="M ' + (n*0.72) + ',15.5 C ' + (n*0.8) + ',13 ' + (n*0.9) + ',12 ' + (n+3) + ',12 ' +
-      'L ' + (L-9) + ',12 L ' + (L-9) + ',17 L ' + (n*0.74) + ',17 Z" fill="' + train.window + '"/>' +
-      // livery stripe
-      '<rect x="' + (n*0.55) + '" y="20" width="' + (L - n*0.55 - 2) + '" height="3.2" rx="1.6" fill="' + train.stripe + '"/>' +
-      // nose tip accent
-      '<path d="M 2,25 C ' + (n*0.42) + ',25 ' + (n*0.6) + ',10.5 ' + (n*0.85) + ',8.8 ' +
-      'L ' + (n*0.85) + ',11 C ' + (n*0.6) + ',12.5 ' + (n*0.45) + ',26.5 ' + 8 + ',26.5 Z" fill="' + train.stripe + '" opacity="0.85"/>' +
-      // bogies
-      '<rect x="' + (n*0.9) + '" y="29" width="26" height="4" rx="1.6" fill="#2A2F38"/>' +
-      '<rect x="' + (L-46) + '" y="29" width="26" height="4" rx="1.6" fill="#2A2F38"/>';
-
-    sl.innerHTML =
-      '<line x1="-46" y1="13" x2="-14" y2="13" stroke="' + train.accent + '" stroke-width="2" stroke-linecap="round"/>' +
-      '<line x1="-38" y1="20" x2="-8"  y2="20" stroke="' + train.accent + '" stroke-width="2" stroke-linecap="round"/>' +
-      '<line x1="-50" y1="27" x2="-20" y2="27" stroke="' + train.accent + '" stroke-width="2" stroke-linecap="round"/>';
-    sl.setAttribute('opacity', '0');
-  }
-
-  // ============ train selection ============
-  function buildSelect() {
-    var sel = $('trainSelect'), groups = {};
-    TRAINS.forEach(function (t) {
-      if (!groups[t.group]) {
-        var og = document.createElement('optgroup');
-        og.label = t.group;
-        sel.appendChild(og);
-        groups[t.group] = og;
-      }
-      var o = document.createElement('option');
-      o.value = t.id;
-      o.textContent = t.id === 'custom' ? 'Custom' : t.name + ' · ' + t.rated + ' km/h';
+  // ================= selection =================
+  function buildSelect(){
+    var sel=$('trainSelect'), groups={};
+    TRAINS.forEach(function(t){
+      if(!groups[t.group]){var og=document.createElement('optgroup');og.label=t.group;sel.appendChild(og);groups[t.group]=og;}
+      var dup = TRAINS.filter(function(x){return x.name===t.name;}).length>1;
+      var o=document.createElement('option');
+      o.value=t.id;
+      o.textContent = t.id==='custom' ? 'Custom'
+        : t.name+(dup?' '+t.line.split(' ')[0]:'')+' · '+t.rated+' km/h';
       groups[t.group].appendChild(o);
     });
-    sel.value = train.id;
+    sel.value=train.id;
   }
-
-  function applyTrain() {
-    document.documentElement.style.setProperty('--accent', train.accent);
-    $('trainName').textContent = train.name;
-    $('trainSub').textContent = train.id === 'custom'
-      ? 'Rated ' + ratedKmh() + ' km/h'
-      : train.line + ' · rated ' + train.rated + ' km/h';
-    $('customRow').style.display = train.id === 'custom' ? 'flex' : 'none';
-    drawTrain();
-    drawDial();
-    drawChart();
+  function applyTrain(){
+    document.documentElement.style.setProperty('--accent',train.accent);
+    $('trainName').textContent=train.name;
+    $('trainSub').textContent = train.id==='custom'
+      ? 'Rated '+ratedKmh()+' km/h'
+      : train.line+' · rated '+train.rated+' km/h';
+    $('customRow').style.display = train.id==='custom' ? 'flex' : 'none';
+    drawTrain(); drawDial(); drawChart();
   }
-
-  $('trainSelect').addEventListener('change', function (e) {
-    var found = TRAINS.filter(function (t) { return t.id === e.target.value; })[0];
-    if (found) { train = found; applyTrain(); }
+  $('trainSelect').addEventListener('change',function(e){
+    var f=TRAINS.filter(function(t){return t.id===e.target.value;})[0];
+    if(f){train=f;applyTrain();}
   });
-  $('customMax').addEventListener('input', function () {
-    if (train.id === 'custom') {
-      $('trainSub').textContent = 'Rated ' + ratedKmh() + ' km/h';
-      drawDial();
-    }
+  $('customMax').addEventListener('input',function(){
+    if(train.id==='custom'){ $('trainSub').textContent='Rated '+ratedKmh()+' km/h'; drawDial(); }
   });
-  $('autoScale').addEventListener('change', function (e) {
-    autoScale = e.target.checked;
-    drawDial();
-  });
+  $('autoScale').addEventListener('change',function(e){autoScale=e.target.checked;drawDial();});
 
-  function setUnit(u) {
-    unit = u;
-    $('btnKmh').setAttribute('aria-selected', String(u === 'kmh'));
-    $('btnMph').setAttribute('aria-selected', String(u === 'mph'));
-    elUnit.textContent = speedUnitLabel();
-    $('avgUnit').textContent = speedUnitLabel();
-    $('maxUnit').textContent = speedUnitLabel();
-    $('distUnit').textContent = distUnitLabel();
-    drawDial();
-    renderStats();
-    drawChart();
-  }
-  $('btnKmh').addEventListener('click', function () { setUnit('kmh'); });
-  $('btnMph').addEventListener('click', function () { setUnit('mph'); });
-
-  // ============ geolocation ============
-  function haversine(a, b) {
-    var R6 = 6371000, k = Math.PI / 180;
-    var dLat = (b.lat - a.lat) * k, dLon = (b.lon - a.lon) * k;
-    var la1 = a.lat * k, la2 = b.lat * k;
-    var h = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)*Math.sin(dLon/2);
-    return 2 * R6 * Math.asin(Math.sqrt(h));
-  }
-
-  function onPosition(pos) {
-    var c = pos.coords;
-    var now = pos.timestamp || Date.now();
-    var fix = { lat: c.latitude, lon: c.longitude, t: now, acc: c.accuracy };
-
-    // 1. discard fixes the receiver itself has no confidence in
-    if (!isFinite(c.accuracy) || c.accuracy > MAX_ACC) {
-      updateSignal(c.accuracy, 'weak');
-      lastFix = null;             // don't bridge across a bad fix
-      reacquiredAt = now;
-      return;
-    }
-
-    var dt = lastFix ? (now - lastFix.t) / 1000 : null;
-
-    // 2. a long gap means the receiver just re-acquired (tunnel exit) — restart cleanly
-    if (dt === null || dt > MAX_GAP || dt <= 0) {
-      lastFix = fix;
-      reacquiredAt = now;
-      updateSignal(c.accuracy, 'reacquired');
-      return;
-    }
-
-    // 3. prefer the receiver's Doppler speed; fall back to position delta only when it's sane
-    var step = haversine(lastFix, fix);
-    var speed = (typeof c.speed === 'number' && c.speed >= 0 && isFinite(c.speed)) ? c.speed : null;
-    var fallback = step / dt;
-
-    if (speed === null) {
-      if (step < c.accuracy * 0.8) fallback = 0;   // movement smaller than the error bar
-      speed = fallback;
-    }
-
-    // 4. hard physical ceiling
-    if (speed > HARD_MAX) { lastFix = fix; return; }
-
-    // 5. acceleration gate — kills the post-tunnel jump even when it clears the ceiling.
-    //    The first accepted fix seeds the gate, so starting mid-journey at 285 km/h is fine.
-    if (lastGoodSpeed === null) {
-      lastGoodSpeed = speed;
-    } else {
-      var settling = (now - reacquiredAt) < SETTLE_MS;
-      var maxDelta = MAX_ACCEL * dt;
-      if (Math.abs(speed - lastGoodSpeed) > maxDelta) {
-        if (settling) { lastFix = fix; return; }   // distrust, don't adopt
-        speed = lastGoodSpeed + Math.sign(speed - lastGoodSpeed) * maxDelta;
-      }
-    }
-
-    if (speed < NOISE_FLOOR) speed = 0;
-
-    // 6. distance: only credit movement consistent with the accepted speed
-    if (step <= speed * dt * 1.6 + c.accuracy * 0.5 && speed > 0) distance += step;
-
-    lastGoodSpeed = speed;
-    rawSpeed = speed;
-    if (speed > topSpeed) {
-      topSpeed = speed;
-      if (autoScale) drawDial();
-    }
-
-    samples.push({ t: now, v: speed });
-    var cutoff = now - WINDOW_MS * 1.2;
-    while (samples.length && samples[0].t < cutoff) samples.shift();
-
-    lastFix = fix;
-    updateSignal(c.accuracy, 'ok');
-  }
-
-  function onError(err) {
-    stop();
-    if (err.code === 1) {
-      showMessage('Location access is off',
-        'Tap the ⌵ in Safari\u2019s address bar → Website Settings → Location → Allow, then reload. From the Home Screen icon, check Settings → Privacy & Security → Location Services.');
-    } else if (err.code === 2) {
-      showMessage('No position available', 'Sit near a window if you can, then start again.');
-    } else {
-      showMessage('Location timed out', 'The receiver took too long to get a fix. Start again.');
-    }
-  }
-
-  function updateSignal(acc, state) {
-    if (state === 'weak') {
-      elDot.className = 'dot poor';
-      elSignal.textContent = 'Weak signal';
-    } else if (state === 'reacquired') {
-      elDot.className = 'dot fair';
-      elSignal.textContent = 'Re-acquiring';
-    } else {
-      elDot.className = 'dot ' + (acc <= 12 ? 'good' : acc <= 30 ? 'fair' : 'poor');
-      elSignal.textContent = '±' + Math.round(acc) + ' m';
-    }
-  }
-
-  function showMessage(title, body) {
-    elMsg.innerHTML = '';
-    var s = document.createElement('strong');
-    s.textContent = title;
-    elMsg.appendChild(s);
-    elMsg.appendChild(document.createTextNode(body));
-    elMsg.classList.add('show');
-  }
-  function clearMessage() { elMsg.classList.remove('show'); }
-
-  function requestWakeLock() {
-    if (!('wakeLock' in navigator)) return;
-    navigator.wakeLock.request('screen').then(function (l) {
-      wakeLock = l;
-      l.addEventListener('release', function () { wakeLock = null; });
-    }).catch(function () {});
-  }
-  document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible' && tracking && !wakeLock) requestWakeLock();
-  });
-
-  function start() {
-    if (!('geolocation' in navigator)) {
-      showMessage('No location support in this browser', 'Open the page in Safari on your iPhone.');
-      return;
-    }
-    if (!window.isSecureContext) {
-      showMessage('Location needs a secure connection',
-        'Serve the page over https:// (GitHub Pages works) or open it at localhost. Location is blocked on plain http.');
-      return;
-    }
-    clearMessage();
-    tracking = true;
-    startedAt = Date.now();
-    lastFix = null; lastGoodSpeed = null; reacquiredAt = Date.now();
-    elStart.textContent = 'Pause';
-    elStart.classList.add('stop');
-    elReset.disabled = false;
-    elSignal.textContent = 'Finding you…';
-    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-      enableHighAccuracy: true, maximumAge: 0, timeout: 25000
-    });
-    requestWakeLock();
-  }
-
-  function stop() {
-    if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-    if (tracking) elapsed += Date.now() - startedAt;
-    tracking = false;
-    rawSpeed = 0; lastFix = null; lastGoodSpeed = null;
-    elStart.textContent = 'Resume';
-    elStart.classList.remove('stop');
-    elDot.className = 'dot';
-    elSignal.textContent = 'Paused';
-    if (wakeLock) { wakeLock.release().catch(function () {}); wakeLock = null; }
-  }
-
-  function reset() {
-    stop();
-    samples = []; topSpeed = 0; distance = 0; elapsed = 0; rawSpeed = 0; shownSpeed = 0;
-    elStart.textContent = 'Start tracking';
-    elReset.disabled = true;
-    elSignal.textContent = 'Not tracking';
-    clearMessage();
+  function setUnit(u){
+    unit=u;
+    $('btnKmh').setAttribute('aria-selected',String(u==='kmh'));
+    $('btnMph').setAttribute('aria-selected',String(u==='mph'));
+    elUnit.textContent=speedUnitLabel();
+    $('avgUnit').textContent=speedUnitLabel();
+    $('maxUnit').textContent=speedUnitLabel();
+    $('distUnit').textContent=distUnitLabel();
     drawDial(); renderStats(); drawChart();
   }
-  elStart.addEventListener('click', function () { tracking ? stop() : start(); });
-  elReset.addEventListener('click', reset);
+  $('btnKmh').addEventListener('click',function(){setUnit('kmh');});
+  $('btnMph').addEventListener('click',function(){setUnit('mph');});
 
-  // ============ chart ============
-  function sizeCanvas() {
-    var dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.round(canvas.clientWidth * dpr);
-    canvas.height = Math.round(canvas.clientHeight * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    drawChart();
-  }
-  window.addEventListener('resize', sizeCanvas);
-
-  function hexToRgb(h) {
-    var m = h.replace('#','');
-    return [parseInt(m.substr(0,2),16), parseInt(m.substr(2,2),16), parseInt(m.substr(4,2),16)];
+  // ================= geolocation =================
+  function haversine(a,b){
+    var R6=6371000,k=Math.PI/180;
+    var dLat=(b.lat-a.lat)*k, dLon=(b.lon-a.lon)*k, la1=a.lat*k, la2=b.lat*k;
+    var h=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)*Math.sin(dLon/2);
+    return 2*R6*Math.asin(Math.sqrt(h));
   }
 
-  function drawChart() {
-    var w = canvas.clientWidth, h = canvas.clientHeight;
-    if (!w || !h) return;
-    ctx.clearRect(0, 0, w, h);
+  function onPosition(pos){
+    var c=pos.coords, now=pos.timestamp||Date.now();
+    var fix={lat:c.latitude,lon:c.longitude,t:now,acc:c.accuracy};
 
-    var padB = 4, padT = 6;
-    var now = Date.now(), t0 = now - WINDOW_MS;
-    var pts = samples.filter(function (s) { return s.t >= t0; });
-
-    ctx.strokeStyle = 'rgba(84,84,88,0.6)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, h - padB + 0.5); ctx.lineTo(w, h - padB + 0.5); ctx.stroke();
-
-    if (pts.length < 2) {
-      ctx.fillStyle = 'rgba(235,235,245,0.3)';
-      ctx.font = '500 13px -apple-system, system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(tracking ? 'Waiting for movement' : 'Start tracking to record a trace', w/2, h/2);
-      return;
+    if(!isFinite(c.accuracy) || c.accuracy>MAX_ACC){
+      updateSignal(c.accuracy,'weak'); lastFix=null; reacquiredAt=now; return;
+    }
+    var dt = lastFix ? (now-lastFix.t)/1000 : null;
+    if(dt===null || dt>MAX_GAP || dt<=0){
+      lastFix=fix; reacquiredAt=now; updateSignal(c.accuracy,'reacquired'); return;
     }
 
-    // fixed vertical scale = the dial's scale, so the trace is comparable between runs
-    var yMax = scaleMax;
-    var x = function (t) { return (t - t0) / WINDOW_MS * w; };
-    var y = function (v) { return (h - padB) - Math.min(toUnit(v) / yMax, 1) * (h - padB - padT); };
+    var step=haversine(lastFix,fix);
+    var speed=(typeof c.speed==='number' && c.speed>=0 && isFinite(c.speed)) ? c.speed : null;
+    if(speed===null){
+      var fb=step/dt;
+      if(step < c.accuracy*0.8) fb=0;
+      speed=fb;
+    }
+    if(speed>HARD_MAX){ lastFix=fix; return; }
 
-    // rated-speed reference line
-    var yLimit = y(ratedKmh() / 3.6);   // y() takes m/s
-    ctx.save();
-    ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(255,69,58,0.55)';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, yLimit); ctx.lineTo(w, yLimit); ctx.stroke();
-    ctx.restore();
+    if(lastGoodSpeed===null){ lastGoodSpeed=speed; }
+    else {
+      var settling=(now-reacquiredAt)<SETTLE_MS, maxDelta=MAX_ACCEL*dt;
+      if(Math.abs(speed-lastGoodSpeed)>maxDelta){
+        if(settling){ lastFix=fix; return; }
+        speed = lastGoodSpeed + Math.sign(speed-lastGoodSpeed)*maxDelta;
+      }
+    }
+    if(speed<NOISE_FLOOR) speed=0;
+    if(speed>0 && step <= speed*dt*1.6 + c.accuracy*0.5) distance+=step;
 
-    var rgb = hexToRgb(train.accent);
-    var grad = ctx.createLinearGradient(0, padT, 0, h);
-    grad.addColorStop(0, 'rgba(' + rgb.join(',') + ',0.30)');
-    grad.addColorStop(1, 'rgba(' + rgb.join(',') + ',0)');
-    ctx.beginPath();
-    ctx.moveTo(x(pts[0].t), h - padB);
-    pts.forEach(function (s) { ctx.lineTo(x(s.t), y(s.v)); });
-    ctx.lineTo(x(pts[pts.length-1].t), h - padB);
-    ctx.closePath();
-    ctx.fillStyle = grad; ctx.fill();
+    lastGoodSpeed=speed; rawSpeed=speed;
+    if(speed>topSpeed){ topSpeed=speed; if(autoScale) drawDial(); }
 
-    ctx.beginPath();
-    pts.forEach(function (s, i) { i ? ctx.lineTo(x(s.t), y(s.v)) : ctx.moveTo(x(s.t), y(s.v)); });
-    ctx.strokeStyle = train.accent;
-    ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.stroke();
-
-    var last = pts[pts.length-1];
-    ctx.beginPath();
-    ctx.arc(x(last.t), y(last.v), 3.5, 0, Math.PI*2);
-    ctx.fillStyle = train.accent; ctx.fill();
-
-    var peak = 0;
-    pts.forEach(function (s) { if (s.v > peak) peak = s.v; });
-    ctx.fillStyle = 'rgba(235,235,245,0.45)';
-    ctx.font = '500 11px -apple-system, system-ui, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('peak ' + Math.round(toUnit(peak)) + ' ' + speedUnitLabel(), 2, padT + 8);
+    samples.push({t:now,v:speed});
+    var cut=now-WINDOW_MS*1.2;
+    while(samples.length && samples[0].t<cut) samples.shift();
+    lastFix=fix; updateSignal(c.accuracy,'ok');
   }
 
-  // ============ stats ============
-  function fmtDuration(ms) {
-    var s = Math.floor(ms/1000), hh = Math.floor(s/3600), mm = Math.floor((s%3600)/60), ss = s%60;
-    var p = function (n) { return n < 10 ? '0'+n : String(n); };
-    return hh ? hh + ':' + p(mm) + ':' + p(ss) : mm + ':' + p(ss);
-  }
-  function totalElapsed() { return elapsed + (tracking ? Date.now() - startedAt : 0); }
-  function renderStats() {
-    var ms = totalElapsed();
-    var avgMs = ms > 1000 ? distance / (ms/1000) : 0;
-    elAvg.firstChild.nodeValue = toUnit(avgMs).toFixed(1);
-    elMax.firstChild.nodeValue = toUnit(topSpeed).toFixed(1);
-    elDist.firstChild.nodeValue = toDistUnit(distance).toFixed(2);
-    elTime.textContent = fmtDuration(ms);
+  function onError(err){
+    stop();
+    if(err.code===1) showMessage('Location access is off',
+      'Tap the \u2304 in Safari\u2019s address bar \u2192 Website Settings \u2192 Location \u2192 Allow, then reload. From the Home Screen icon, check Settings \u2192 Privacy & Security \u2192 Location Services.');
+    else if(err.code===2) showMessage('No position available','Sit near a window if you can, then start again.');
+    else showMessage('Location timed out','The receiver took too long to get a fix. Start again.');
   }
 
-  // ============ loop ============
-  var lastChart = 0;
-  function frame(ts) {
-    shownSpeed += (rawSpeed - shownSpeed) * SMOOTHING;
-    if (Math.abs(rawSpeed - shownSpeed) < 0.02) shownSpeed = rawSpeed;
+  function updateSignal(acc,state){
+    if(state==='weak'){elDot.className='dot poor';elSignal.textContent='Weak signal';}
+    else if(state==='reacquired'){elDot.className='dot fair';elSignal.textContent='Re-acquiring';}
+    else{elDot.className='dot '+(acc<=12?'good':acc<=30?'fair':'poor');elSignal.textContent='\u00b1'+Math.round(acc)+' m';}
+  }
 
-    var display = toUnit(shownSpeed);
-    elValue.textContent = display < 10 ? display.toFixed(1) : String(Math.round(display));
+  function showMessage(title,body){
+    elMsg.innerHTML='';
+    var s=document.createElement('strong'); s.textContent=title;
+    elMsg.appendChild(s); elMsg.appendChild(document.createTextNode(body));
+    elMsg.classList.add('show');
+  }
+  function clearMessage(){elMsg.classList.remove('show');}
 
-    var frac = Math.min(display / scaleMax, 1);
-    elProgress.style.strokeDashoffset = ARC_LEN * (1 - frac);
-    elProgress.style.stroke = display > ratedInUnit() ? '#FF453A' : train.accent;
+  function requestWakeLock(){
+    if(!('wakeLock' in navigator)) return;
+    navigator.wakeLock.request('screen').then(function(l){
+      wakeLock=l; l.addEventListener('release',function(){wakeLock=null;});
+    }).catch(function(){});
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState==='visible' && tracking && !wakeLock) requestWakeLock();
+  });
 
-    // speed lines behind the train, tied to actual speed
-    var sl = $('speedlines');
-    var ratio = Math.min(display / Math.max(ratedInUnit(), 1), 1.2);
-    if (reduceMotion) {
-      sl.setAttribute('opacity', ratio > 0.05 ? '0.5' : '0');
+  function start(){
+    if(!('geolocation' in navigator)){ showMessage('No location support in this browser','Open the page in Safari on your iPhone.'); return; }
+    if(!window.isSecureContext){ showMessage('Location needs a secure connection','Serve the page over https:// (GitHub Pages works) or open it at localhost. Location is blocked on plain http.'); return; }
+    clearMessage();
+    tracking=true; startedAt=Date.now(); lastFix=null; lastGoodSpeed=null; reacquiredAt=Date.now();
+    elStart.textContent='Pause'; elStart.classList.add('stop'); elReset.disabled=false;
+    elSignal.textContent='Finding you\u2026';
+    watchId=navigator.geolocation.watchPosition(onPosition,onError,{enableHighAccuracy:true,maximumAge:0,timeout:25000});
+    requestWakeLock();
+  }
+  function stop(){
+    if(watchId!==null){navigator.geolocation.clearWatch(watchId);watchId=null;}
+    if(tracking) elapsed+=Date.now()-startedAt;
+    tracking=false; rawSpeed=0; lastFix=null; lastGoodSpeed=null;
+    elStart.textContent='Resume'; elStart.classList.remove('stop');
+    elDot.className='dot'; elSignal.textContent='Paused';
+    if(wakeLock){wakeLock.release().catch(function(){});wakeLock=null;}
+  }
+  function reset(){
+    stop();
+    samples=[];topSpeed=0;distance=0;elapsed=0;rawSpeed=0;shownSpeed=0;
+    elStart.textContent='Start tracking'; elReset.disabled=true; elSignal.textContent='Not tracking';
+    clearMessage(); drawDial(); renderStats(); drawChart();
+  }
+  elStart.addEventListener('click',function(){tracking?stop():start();});
+  elReset.addEventListener('click',reset);
+
+  // ================= chart =================
+  function sizeCanvas(){
+    var dpr=window.devicePixelRatio||1;
+    canvas.width=Math.round(canvas.clientWidth*dpr);
+    canvas.height=Math.round(canvas.clientHeight*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    drawChart();
+  }
+  window.addEventListener('resize',sizeCanvas);
+  function hexToRgb(h){var m=h.replace('#','');return [parseInt(m.substr(0,2),16),parseInt(m.substr(2,2),16),parseInt(m.substr(4,2),16)];}
+
+  function drawChart(){
+    var w=canvas.clientWidth, h=canvas.clientHeight;
+    if(!w||!h) return;
+    ctx.clearRect(0,0,w,h);
+    var padB=4, padT=6, now=Date.now(), t0=now-WINDOW_MS;
+    var pts=samples.filter(function(s){return s.t>=t0;});
+
+    ctx.strokeStyle='rgba(84,84,88,0.6)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,h-padB+0.5); ctx.lineTo(w,h-padB+0.5); ctx.stroke();
+
+    if(pts.length<2){
+      ctx.fillStyle='rgba(235,235,245,0.3)';
+      ctx.font='500 13px -apple-system, system-ui, sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(tracking?'Waiting for movement':'Start tracking to record a trace', w/2, h/2);
+      return;
+    }
+    var x=function(t){return (t-t0)/WINDOW_MS*w;};
+    var y=function(v){return (h-padB)-Math.min(toUnit(v)/scaleMax,1)*(h-padB-padT);};
+
+    var yLimit=y(ratedKmh()/3.6);
+    ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(255,69,58,0.55)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,yLimit); ctx.lineTo(w,yLimit); ctx.stroke(); ctx.restore();
+
+    var rgb=hexToRgb(train.accent);
+    var grad=ctx.createLinearGradient(0,padT,0,h);
+    grad.addColorStop(0,'rgba('+rgb.join(',')+',0.30)');
+    grad.addColorStop(1,'rgba('+rgb.join(',')+',0)');
+    ctx.beginPath(); ctx.moveTo(x(pts[0].t),h-padB);
+    pts.forEach(function(s){ctx.lineTo(x(s.t),y(s.v));});
+    ctx.lineTo(x(pts[pts.length-1].t),h-padB); ctx.closePath();
+    ctx.fillStyle=grad; ctx.fill();
+
+    ctx.beginPath();
+    pts.forEach(function(s,i){i?ctx.lineTo(x(s.t),y(s.v)):ctx.moveTo(x(s.t),y(s.v));});
+    ctx.strokeStyle=train.accent; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.lineCap='round'; ctx.stroke();
+
+    var last=pts[pts.length-1];
+    ctx.beginPath(); ctx.arc(x(last.t),y(last.v),3.5,0,Math.PI*2);
+    ctx.fillStyle=train.accent; ctx.fill();
+
+    var peak=0; pts.forEach(function(s){if(s.v>peak)peak=s.v;});
+    ctx.fillStyle='rgba(235,235,245,0.45)';
+    ctx.font='500 11px -apple-system, system-ui, sans-serif';
+    ctx.textAlign='left';
+    ctx.fillText('peak '+Math.round(toUnit(peak))+' '+speedUnitLabel(),2,padT+8);
+  }
+
+  // ================= stats =================
+  function fmtDuration(ms){
+    var s=Math.floor(ms/1000),hh=Math.floor(s/3600),mm=Math.floor((s%3600)/60),ss=s%60;
+    var p=function(n){return n<10?'0'+n:String(n);};
+    return hh?hh+':'+p(mm)+':'+p(ss):mm+':'+p(ss);
+  }
+  function totalElapsed(){return elapsed+(tracking?Date.now()-startedAt:0);}
+  function renderStats(){
+    var ms=totalElapsed(), avgMs = ms>1000 ? distance/(ms/1000) : 0;
+    elAvg.firstChild.nodeValue=toUnit(avgMs).toFixed(1);
+    elMax.firstChild.nodeValue=toUnit(topSpeed).toFixed(1);
+    elDist.firstChild.nodeValue=toDistUnit(distance).toFixed(2);
+    elTime.textContent=fmtDuration(ms);
+  }
+
+  // ================= loop =================
+  var lastChart=0;
+  function frame(ts){
+    shownSpeed += (rawSpeed-shownSpeed)*SMOOTHING;
+    if(Math.abs(rawSpeed-shownSpeed)<0.02) shownSpeed=rawSpeed;
+    var display=toUnit(shownSpeed);
+    elValue.textContent = display<10 ? display.toFixed(1) : String(Math.round(display));
+
+    var frac=Math.min(display/scaleMax,1);
+    elProgress.style.strokeDashoffset=ARC_LEN*(1-frac);
+    elProgress.style.stroke = display>ratedInUnit() ? '#FF453A' : train.accent;
+
+    var sl=$('speedlines'), ratio=Math.min(display/Math.max(ratedInUnit(),1),1.2);
+    if(reduceMotion){
+      sl.setAttribute('opacity', ratio>0.05 ? '0.45' : '0');
     } else {
-      lineDash = (lineDash + ratio * 3.2) % 34;
-      sl.setAttribute('transform', 'translate(' + (-lineDash) + ',0)');
-      sl.setAttribute('opacity', String(Math.min(ratio * 0.9, 0.75)));
+      lineDash=(lineDash+ratio*1.4)%15;
+      sl.setAttribute('transform','translate('+(-lineDash)+',0)');
+      sl.setAttribute('opacity', String(Math.min(ratio*0.85,0.7)));
     }
 
     renderStats();
-    if (ts - lastChart > 500) { drawChart(); lastChart = ts; }
+    if(ts-lastChart>500){drawChart();lastChart=ts;}
     requestAnimationFrame(frame);
   }
 
-  // ============ boot ============
-  buildSelect();
-  applyTrain();
-  setUnit('kmh');
-  sizeCanvas();
+  buildSelect(); applyTrain(); setUnit('kmh'); sizeCanvas();
   requestAnimationFrame(frame);
 })();
 </script>
