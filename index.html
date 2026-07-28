@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#000000" />
-<title>Speed</title>
+<title>Shinkansen Speed</title>
 <style>
   :root {
     --bg: #000000;
@@ -17,9 +17,9 @@
     --label-2: rgba(235, 235, 245, 0.6);
     --label-3: rgba(235, 235, 245, 0.3);
     --blue: #0A84FF;
-    --green: #30D158;
     --red: #FF453A;
-    --orange: #FF9F0A;
+    --accent: #0A84FF;        /* set per train */
+    --accent-dim: rgba(10,132,255,0.25);
     --radius: 14px;
     --pad: 16px;
   }
@@ -44,246 +44,192 @@
       calc(env(safe-area-inset-left) + var(--pad));
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 13px;
     max-width: 560px;
     margin: 0 auto;
   }
 
   .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
-  /* ---- header ---- */
   header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 32px;
+    display: flex; align-items: center; justify-content: space-between; min-height: 30px;
   }
-  h1 {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.4px;
-    margin: 0;
-  }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; margin: 0; }
   .signal {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--label-2);
-    letter-spacing: -0.1px;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--label-2); letter-spacing: -0.1px;
   }
   .dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: var(--label-3);
-    transition: background-color .3s ease;
+    background: var(--label-3); transition: background-color .3s ease;
   }
-  .dot.good { background: var(--green); }
-  .dot.fair { background: var(--orange); }
+  .dot.good { background: #30D158; }
+  .dot.fair { background: #FF9F0A; }
   .dot.poor { background: var(--red); }
 
-  /* ---- gauge ---- */
+  /* ---------- gauge ---------- */
   .gauge {
     position: relative;
     width: 100%;
-    max-width: 320px;
-    margin: 2px auto 0;
-    aspect-ratio: 1 / 0.92;
+    max-width: 330px;
+    margin: 0 auto;
+    aspect-ratio: 260 / 252;
   }
   .gauge svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
   .track { stroke: var(--surface-2); }
-  .progress {
-    stroke: var(--green);
-    transition: stroke .6s linear;
-  }
+  .redzone { stroke: rgba(255,69,58,0.35); }
+  .progress { stroke: var(--accent); transition: stroke .5s ease; }
   .tick { stroke: var(--label-3); stroke-width: 2; stroke-linecap: round; }
   .tick-label {
-    fill: var(--label-3);
-    font-size: 11px;
-    font-weight: 500;
-    font-family: inherit;
-    font-variant-numeric: tabular-nums;
+    fill: var(--label-3); font-size: 10px; font-weight: 500;
+    font-family: inherit; font-variant-numeric: tabular-nums;
   }
+  .limit-line { stroke: var(--red); stroke-width: 3; stroke-linecap: round; }
+  .limit-label { fill: var(--red); font-size: 10px; font-weight: 700; font-family: inherit; }
 
   .readout {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 6%;
+    position: absolute; left: 0; right: 0; top: 0;
+    height: 66%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     pointer-events: none;
   }
   .value {
-    font-size: clamp(64px, 22vw, 88px);
-    font-weight: 600;
-    letter-spacing: -3px;
-    line-height: 1;
+    font-size: clamp(48px, 15.5vw, 66px);
+    font-weight: 600; letter-spacing: -2px; line-height: 1;
   }
   .unit {
-    margin-top: 6px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--label-2);
-    letter-spacing: 0.2px;
+    margin-top: 5px; font-size: 13px; font-weight: 500;
+    color: var(--label-2); letter-spacing: 0.3px;
   }
 
-  /* ---- segmented control ---- */
+  /* ---------- train caption ---------- */
+  .caption { text-align: center; margin-top: -6px; }
+  .caption-name { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
+  .caption-sub { font-size: 12px; color: var(--label-2); margin-top: 2px; }
+
+  /* ---------- segmented ---------- */
   .segmented {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    background: var(--surface-2);
-    border-radius: 9px;
-    padding: 2px;
-    width: 180px;
-    margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--surface-2); border-radius: 9px; padding: 2px;
+    width: 180px; margin: 0 auto;
   }
   .segmented button {
-    appearance: none;
-    border: 0;
-    background: transparent;
-    color: var(--label);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px 0;
-    border-radius: 7px;
-    cursor: pointer;
-    transition: background-color .2s ease;
+    appearance: none; border: 0; background: transparent; color: var(--label);
+    font: inherit; font-size: 13px; font-weight: 500; padding: 6px 0;
+    border-radius: 7px; cursor: pointer; transition: background-color .2s ease;
   }
-  .segmented button[aria-selected="true"] {
-    background: #636366;
-    font-weight: 600;
-  }
+  .segmented button[aria-selected="true"] { background: #636366; font-weight: 600; }
 
-  /* ---- cards ---- */
-  .card {
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-  }
-  .card-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
-  .card-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--label-2);
-    letter-spacing: -0.1px;
-  }
+  /* ---------- cards ---------- */
+  .card { background: var(--surface); border-radius: var(--radius); padding: 13px 16px; }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 9px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--label-2); letter-spacing: -0.1px; }
   .card-note { font-size: 12px; color: var(--label-3); }
-
-  #chart { display: block; width: 100%; height: 110px; }
+  #chart { display: block; width: 100%; height: 104px; }
 
   .stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: var(--separator);
-    border-radius: var(--radius);
-    overflow: hidden;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--separator); border-radius: var(--radius); overflow: hidden;
   }
-  .stat {
-    background: var(--surface);
-    padding: 12px 16px;
-  }
-  .stat-label {
-    font-size: 12px;
-    color: var(--label-2);
-    letter-spacing: -0.05px;
-  }
-  .stat-value {
-    font-size: 21px;
-    font-weight: 600;
-    letter-spacing: -0.4px;
-    margin-top: 2px;
-  }
-  .stat-value small {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--label-2);
-    letter-spacing: 0;
-    margin-left: 2px;
-  }
+  .stat { background: var(--surface); padding: 11px 16px; }
+  .stat-label { font-size: 12px; color: var(--label-2); }
+  .stat-value { font-size: 20px; font-weight: 600; letter-spacing: -0.4px; margin-top: 2px; }
+  .stat-value small { font-size: 12px; font-weight: 500; color: var(--label-2); letter-spacing: 0; margin-left: 2px; }
 
-  /* ---- controls ---- */
-  .controls {
-    margin-top: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding-top: 4px;
+  /* ---------- settings rows ---------- */
+  .row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; min-height: 40px;
   }
+  .row + .row { border-top: 1px solid var(--separator); }
+  .row-label { font-size: 15px; letter-spacing: -0.2px; }
+  .row-hint { font-size: 12px; color: var(--label-2); margin-top: 1px; }
+
+  select, input[type="number"] {
+    appearance: none; -webkit-appearance: none;
+    background: var(--surface-2); border: 0; color: var(--label);
+    font: inherit; font-size: 15px; padding: 7px 10px; border-radius: 8px;
+    max-width: 62%; text-align: right; text-align-last: right;
+  }
+  input[type="number"] { width: 96px; }
+
+  .switch { position: relative; width: 51px; height: 31px; flex: none; }
+  .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  .switch span {
+    position: absolute; inset: 0; background: #39393D; border-radius: 16px;
+    transition: background-color .2s ease; pointer-events: none;
+  }
+  .switch span::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 27px; height: 27px; border-radius: 50%; background: #fff;
+    transition: transform .2s ease; box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  }
+  .switch input:checked + span { background: #30D158; }
+  .switch input:checked + span::after { transform: translateX(20px); }
+  .switch input:focus-visible + span { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  /* ---------- controls ---------- */
+  .controls { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 4px; }
   .primary {
-    appearance: none;
-    border: 0;
-    width: 100%;
-    background: var(--blue);
-    color: #fff;
-    font: inherit;
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.2px;
-    padding: 15px;
-    border-radius: 13px;
-    cursor: pointer;
-    transition: opacity .15s ease, transform .1s ease;
+    appearance: none; border: 0; width: 100%; background: var(--accent); color: #fff;
+    font: inherit; font-size: 17px; font-weight: 600; letter-spacing: -0.2px;
+    padding: 15px; border-radius: 13px; cursor: pointer;
+    transition: opacity .15s ease, transform .1s ease, background-color .5s ease;
   }
   .primary:active { transform: scale(0.985); opacity: .85; }
   .primary.stop { background: var(--surface-2); }
   .ghost {
-    appearance: none;
-    border: 0;
-    background: none;
-    color: var(--blue);
-    font: inherit;
-    font-size: 15px;
-    padding: 4px 12px;
-    cursor: pointer;
+    appearance: none; border: 0; background: none; color: var(--accent);
+    font: inherit; font-size: 15px; padding: 4px 12px; cursor: pointer;
   }
   .ghost:disabled { color: var(--label-3); cursor: default; }
 
   :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
 
-  /* ---- message ---- */
   .message {
-    display: none;
-    background: var(--surface);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    font-size: 14px;
-    line-height: 1.45;
-    color: var(--label-2);
+    display: none; background: var(--surface); border-radius: var(--radius);
+    padding: 13px 16px; font-size: 14px; line-height: 1.45; color: var(--label-2);
   }
   .message.show { display: block; }
   .message strong { color: var(--label); font-weight: 600; display: block; margin-bottom: 3px; }
 
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  @media (max-height: 700px) {
+    #chart { height: 84px; }
+    .gauge { max-width: 290px; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Speed</h1>
+  <h1>Shinkansen</h1>
   <span class="signal"><span class="dot" id="dot"></span><span id="signalText">Not tracking</span></span>
 </header>
 
 <div class="gauge">
-  <svg viewBox="0 0 240 224" aria-hidden="true">
+  <svg viewBox="-10 -6 280 258" aria-hidden="true">
+    <path id="track" class="track" fill="none" stroke-width="13" stroke-linecap="round" />
+    <path id="redzone" class="redzone" fill="none" stroke-width="13" stroke-linecap="butt" />
     <g id="ticks"></g>
-    <path id="track" class="track" fill="none" stroke-width="14" stroke-linecap="round" />
-    <path id="progress" class="progress" fill="none" stroke-width="14" stroke-linecap="round" />
+    <path id="progress" class="progress" fill="none" stroke-width="13" stroke-linecap="round" />
+    <line id="limitLine" class="limit-line" />
+    <text id="limitLabel" class="limit-label" text-anchor="middle"></text>
+    <g id="trainGroup" transform="translate(50, 186)">
+      <g id="speedlines"></g>
+      <g id="train"></g>
+    </g>
   </svg>
   <div class="readout">
-    <div class="value num" id="value" role="status" aria-live="off">0</div>
+    <div class="value num" id="value">0</div>
     <div class="unit" id="unitLabel">km/h</div>
   </div>
+</div>
+
+<div class="caption">
+  <div class="caption-name" id="trainName">N700S</div>
+  <div class="caption-sub" id="trainSub">Tokaido Shinkansen · rated 285 km/h</div>
 </div>
 
 <div class="segmented" role="tablist" aria-label="Units">
@@ -320,6 +266,24 @@
   </div>
 </div>
 
+<div class="card">
+  <div class="row">
+    <label class="row-label" for="trainSelect">Train</label>
+    <select id="trainSelect"></select>
+  </div>
+  <div class="row" id="customRow" style="display:none">
+    <label class="row-label" for="customMax">Rated top speed</label>
+    <input type="number" id="customMax" min="20" max="700" step="5" value="300" inputmode="numeric" />
+  </div>
+  <div class="row">
+    <div>
+      <div class="row-label">Auto-scale dial</div>
+      <div class="row-hint">Off: fixed at rated speed + 10%</div>
+    </div>
+    <label class="switch"><input type="checkbox" id="autoScale" /><span></span></label>
+  </div>
+</div>
+
 <div class="controls">
   <button class="primary" id="startStop">Start tracking</button>
   <button class="ghost" id="reset" disabled>Reset trip</button>
@@ -329,99 +293,219 @@
 (function () {
   'use strict';
 
-  // ---------- config ----------
-  var WINDOW_MS = 120000;          // chart window
-  var NOISE_FLOOR = 0.6;           // m/s — below this, treat as stationary (GPS drift)
-  var MAX_ACCURACY = 40;           // metres — ignore fixes worse than this for distance
-  var SMOOTHING = 0.35;            // display smoothing factor
-  var KMH_SCALES = [30, 60, 120, 180, 240];
-  var MPH_SCALES = [20, 40, 80, 120, 160];
+  // ============ train roster ============
+  // rated = maximum service speed in km/h
+  var TRAINS = [
+    { id:'n700s',    group:'JR Central / JR West', name:'N700S',        line:'Tokaido Shinkansen',      rated:285, accent:'#3B82F6', body:'#F2F4F7', stripe:'#0F3E8C', window:'#16202E', nose:88 },
+    { id:'n700s-sy', group:'JR Central / JR West', name:'N700S',        line:'Sanyo Shinkansen',        rated:300, accent:'#3B82F6', body:'#F2F4F7', stripe:'#0F3E8C', window:'#16202E', nose:88 },
+    { id:'n700a',    group:'JR Central / JR West', name:'N700A',        line:'Tokaido Shinkansen',      rated:285, accent:'#60A5FA', body:'#F2F4F7', stripe:'#123E85', window:'#16202E', nose:80 },
+    { id:'500',      group:'JR Central / JR West', name:'500 Series',   line:'Sanyo Kodama',            rated:285, accent:'#9CA3AF', body:'#D7DBE0', stripe:'#2C3E8F', window:'#111826', nose:120 },
+    { id:'700',      group:'JR Central / JR West', name:'700 Series',   line:'Sanyo Hikari Rail Star',  rated:285, accent:'#94A3B8', body:'#E6E9EE', stripe:'#1F2937', window:'#151C28', nose:70 },
+    { id:'e5',       group:'JR East',              name:'E5 Hayabusa',  line:'Tohoku Shinkansen',       rated:320, accent:'#34D399', body:'#EDF1F4', stripe:'#E5007F', window:'#0E3B2C', nose:110 },
+    { id:'h5',       group:'JR East',              name:'H5 Hayabusa',  line:'Hokkaido Shinkansen',     rated:320, accent:'#A78BFA', body:'#EDF1F4', stripe:'#7C3AED', window:'#0E3B2C', nose:110 },
+    { id:'e6',       group:'JR East',              name:'E6 Komachi',   line:'Akita Shinkansen',        rated:320, accent:'#F87171', body:'#F0F2F5', stripe:'#C0202E', window:'#1A1F2B', nose:100 },
+    { id:'e7',       group:'JR East',              name:'E7 / W7',      line:'Hokuriku Shinkansen',     rated:275, accent:'#D9A05B', body:'#F4EFE6', stripe:'#12294E', window:'#131B2A', nose:78 },
+    { id:'e3',       group:'JR East',              name:'E3 Tsubasa',   line:'Yamagata Shinkansen',     rated:275, accent:'#C084FC', body:'#EDEFF2', stripe:'#6D28D9', window:'#1A1F2B', nose:72 },
+    { id:'e2',       group:'JR East',              name:'E2 Series',    line:'Joetsu Shinkansen',       rated:275, accent:'#67E8F9', body:'#EEF1F5', stripe:'#0E7490', window:'#151C28', nose:74 },
+    { id:'800',      group:'JR Kyushu',            name:'800 Series',   line:'Kyushu Shinkansen',       rated:260, accent:'#FB7185', body:'#F7F7F5', stripe:'#B91C1C', window:'#1B1B1B', nose:60 },
+    { id:'n700s-8k', group:'JR Kyushu',            name:'N700S Kamome', line:'Nishi Kyushu Shinkansen', rated:260, accent:'#F87171', body:'#F7F7F5', stripe:'#991B1B', window:'#171717', nose:88 },
+    { id:'l0',       group:'Maglev',               name:'L0 Series',    line:'Chuo Shinkansen (maglev)',rated:500, accent:'#22D3EE', body:'#E9EEF4', stripe:'#0B4FA0', window:'#0F2033', nose:140 },
+    { id:'custom',   group:'Other',                name:'Custom',       line:'Set your own rated speed',rated:300, accent:'#0A84FF', body:'#E8EAED', stripe:'#4B5563', window:'#1A1F2B', nose:80 }
+  ];
 
-  // ---------- state ----------
-  var tracking = false;
-  var watchId = null;
-  var wakeLock = null;
+  // ============ tuning / plausibility ============
+  var WINDOW_MS   = 120000;
+  var NOISE_FLOOR = 0.6;     // m/s, below this = stationary
+  var MAX_ACC     = 45;      // m, reject fixes worse than this
+  var HARD_MAX    = 180;     // m/s (648 km/h) — nothing on rails goes faster
+  var MAX_ACCEL   = 3.5;     // m/s^2 — a Shinkansen does ~0.7; this is a generous ceiling
+  var MAX_GAP     = 4;       // s — longer gap means the receiver re-acquired (tunnel exit)
+  var SETTLE_MS   = 2500;    // ms of distrust after a re-acquisition
+  var SMOOTHING   = 0.3;
+
+  // ============ state ============
+  var train = TRAINS[0];
+  var autoScale = false;
+  var tracking = false, watchId = null, wakeLock = null;
   var unit = 'kmh';
+  var samples = [], rawSpeed = 0, shownSpeed = 0, topSpeed = 0;
+  var distance = 0, elapsed = 0, startedAt = 0;
+  var lastFix = null, lastGoodSpeed = null, reacquiredAt = 0;
+  var scaleMax = 320;        // in current display unit
+  var lineDash = 0;
 
-  var samples = [];        // {t, v}  v in m/s
-  var rawSpeed = 0;        // latest m/s
-  var shownSpeed = 0;      // smoothed, for display
-  var topSpeed = 0;
-  var distance = 0;        // metres
-  var elapsed = 0;         // ms of tracking
-  var lastFix = null;
-  var startedAt = 0;
-  var scaleMax = KMH_SCALES[1];
-
-  // ---------- elements ----------
   var $ = function (id) { return document.getElementById(id); };
-  var elValue = $('value'), elUnit = $('unitLabel'), elAvg = $('avg'), elMax = $('max'),
-      elDist = $('dist'), elTime = $('time'), elDot = $('dot'), elSignal = $('signalText'),
-      elStart = $('startStop'), elReset = $('reset'), elMsg = $('message'),
-      elProgress = $('progress'), elTrack = $('track'), elTicks = $('ticks'),
-      canvas = $('chart'), ctx = canvas.getContext('2d');
+  var elValue=$('value'), elUnit=$('unitLabel'), elAvg=$('avg'), elMax=$('max'),
+      elDist=$('dist'), elTime=$('time'), elDot=$('dot'), elSignal=$('signalText'),
+      elStart=$('startStop'), elReset=$('reset'), elMsg=$('message'),
+      elProgress=$('progress'), elTrack=$('track'), elRed=$('redzone'), elTicks=$('ticks'),
+      elLimitLine=$('limitLine'), elLimitLabel=$('limitLabel'),
+      canvas=$('chart'), ctx=canvas.getContext('2d');
 
-  // ---------- gauge geometry ----------
-  var CX = 120, CY = 120, R = 92, START = 135, SWEEP = 270;
-  var ARC_LEN = 2 * Math.PI * R * (SWEEP / 360);
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function polar(angleDeg, radius) {
-    var a = angleDeg * Math.PI / 180;
-    return [CX + radius * Math.cos(a), CY + radius * Math.sin(a)];
+  // ============ geometry ============
+  var CX=130, CY=118, R=96, START=135, SWEEP=270;
+  var ARC_LEN = 2 * Math.PI * R * (SWEEP/360);
+
+  function polar(deg, r) {
+    var a = deg * Math.PI / 180;
+    return [CX + r * Math.cos(a), CY + r * Math.sin(a)];
   }
-
-  function arcPath(radius) {
-    var s = polar(START, radius), e = polar(START + SWEEP, radius);
+  function arcPath(r, fromDeg, toDeg) {
+    var s = polar(fromDeg, r), e = polar(toDeg, r);
+    var large = (toDeg - fromDeg) > 180 ? 1 : 0;
     return 'M ' + s[0].toFixed(2) + ' ' + s[1].toFixed(2) +
-           ' A ' + radius + ' ' + radius + ' 0 1 1 ' + e[0].toFixed(2) + ' ' + e[1].toFixed(2);
+           ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + e[0].toFixed(2) + ' ' + e[1].toFixed(2);
   }
 
-  elTrack.setAttribute('d', arcPath(R));
-  elProgress.setAttribute('d', arcPath(R));
+  elTrack.setAttribute('d', arcPath(R, START, START + SWEEP));
+  elProgress.setAttribute('d', arcPath(R, START, START + SWEEP));
   elProgress.style.strokeDasharray = ARC_LEN;
   elProgress.style.strokeDashoffset = ARC_LEN;
 
-  function drawTicks() {
+  // ============ units ============
+  function toUnit(ms) { return unit === 'kmh' ? ms * 3.6 : ms * 2.236936; }
+  function ratedInUnit() { return unit === 'kmh' ? ratedKmh() : ratedKmh() * 0.6213712; }
+  function speedUnitLabel() { return unit === 'kmh' ? 'km/h' : 'mph'; }
+  function distUnitLabel() { return unit === 'kmh' ? 'km' : 'mi'; }
+  function toDistUnit(m) { return unit === 'kmh' ? m/1000 : m/1609.344; }
+  function ratedKmh() {
+    return train.id === 'custom' ? Math.max(20, Number($('customMax').value) || 300) : train.rated;
+  }
+
+  function baseScale() { return Math.ceil(ratedInUnit() * 1.1 / 20) * 20; }
+
+  function computeScale() {
+    var base = baseScale();
+    if (!autoScale) return base;
+    var peak = toUnit(Math.max(topSpeed, rawSpeed));
+    if (peak <= base * 0.97) return base;
+    return Math.ceil(peak * 1.08 / 20) * 20;
+  }
+
+  // ============ dial rendering ============
+  function drawDial() {
+    scaleMax = computeScale();
     var svgns = 'http://www.w3.org/2000/svg';
+
+    // ticks + labels (labels sit OUTSIDE the ring so they never touch the readout)
     elTicks.textContent = '';
     for (var i = 0; i <= 8; i++) {
-      var ang = START + (SWEEP * i / 8);
+      var ang = START + SWEEP * i / 8;
       var major = i % 2 === 0;
-      var p1 = polar(ang, R - 13), p2 = polar(ang, major ? R - 20 : R - 17);
-      var line = document.createElementNS(svgns, 'line');
-      line.setAttribute('x1', p1[0]); line.setAttribute('y1', p1[1]);
-      line.setAttribute('x2', p2[0]); line.setAttribute('y2', p2[1]);
-      line.setAttribute('class', 'tick');
-      if (!major) line.setAttribute('opacity', '0.5');
-      elTicks.appendChild(line);
+      var p1 = polar(ang, R - 11), p2 = polar(ang, R - (major ? 18 : 15));
+      var ln = document.createElementNS(svgns, 'line');
+      ln.setAttribute('x1', p1[0].toFixed(2)); ln.setAttribute('y1', p1[1].toFixed(2));
+      ln.setAttribute('x2', p2[0].toFixed(2)); ln.setAttribute('y2', p2[1].toFixed(2));
+      ln.setAttribute('class', 'tick');
+      if (!major) ln.setAttribute('opacity', '0.45');
+      elTicks.appendChild(ln);
 
       if (major) {
-        var lp = polar(ang, R - 33);
+        var lp = polar(ang, R + 15);
         var t = document.createElementNS(svgns, 'text');
-        t.setAttribute('x', lp[0]); t.setAttribute('y', lp[1] + 4);
+        t.setAttribute('x', lp[0].toFixed(2));
+        t.setAttribute('y', (lp[1] + 3.5).toFixed(2));
         t.setAttribute('text-anchor', 'middle');
         t.setAttribute('class', 'tick-label');
         t.textContent = Math.round(scaleMax * i / 8);
         elTicks.appendChild(t);
       }
     }
-  }
 
-  // ---------- units ----------
-  function toUnit(ms) { return unit === 'kmh' ? ms * 3.6 : ms * 2.236936; }
-  function speedUnitLabel() { return unit === 'kmh' ? 'km/h' : 'mph'; }
-  function distUnitLabel() { return unit === 'kmh' ? 'km' : 'mi'; }
-  function toDistUnit(m) { return unit === 'kmh' ? m / 1000 : m / 1609.344; }
-  function scales() { return unit === 'kmh' ? KMH_SCALES : MPH_SCALES; }
-
-  function pickScale() {
-    var peak = toUnit(Math.max(topSpeed, rawSpeed));
-    var list = scales();
-    for (var i = 0; i < list.length; i++) {
-      if (peak <= list[i] * 0.92) return list[i];
+    // red zone above the rated speed
+    var frac = Math.min(ratedInUnit() / scaleMax, 1);
+    var limitAng = START + SWEEP * frac;
+    if (frac < 0.999) {
+      elRed.setAttribute('d', arcPath(R, limitAng, START + SWEEP));
+      elRed.style.display = '';
+    } else {
+      elRed.style.display = 'none';
     }
-    return list[list.length - 1];
+
+    // rated-speed marker
+    var a = polar(limitAng, R - 9), b = polar(limitAng, R + 9);
+    elLimitLine.setAttribute('x1', a[0].toFixed(2)); elLimitLine.setAttribute('y1', a[1].toFixed(2));
+    elLimitLine.setAttribute('x2', b[0].toFixed(2)); elLimitLine.setAttribute('y2', b[1].toFixed(2));
+    var lab = polar(limitAng, R + 28);
+    elLimitLabel.setAttribute('x', lab[0].toFixed(2));
+    elLimitLabel.setAttribute('y', (lab[1] + 3.5).toFixed(2));
+    elLimitLabel.textContent = Math.round(ratedInUnit());
   }
+
+  // ============ train silhouette ============
+  function drawTrain() {
+    var g = $('train'), sl = $('speedlines');
+    var n = train.nose, L = 160;
+    g.innerHTML =
+      // body
+      '<path d="M 2,25 C ' + (n*0.42) + ',25 ' + (n*0.62) + ',9.5 ' + n + ',8 ' +
+      'L ' + (L-8) + ',8 Q ' + L + ',8 ' + L + ',13 L ' + L + ',26 Q ' + L + ',29 ' + (L-4) + ',29 ' +
+      'L 6,29 Q 2,29 2,25 Z" fill="' + train.body + '"/>' +
+      // window band
+      '<path d="M ' + (n*0.72) + ',15.5 C ' + (n*0.8) + ',13 ' + (n*0.9) + ',12 ' + (n+3) + ',12 ' +
+      'L ' + (L-9) + ',12 L ' + (L-9) + ',17 L ' + (n*0.74) + ',17 Z" fill="' + train.window + '"/>' +
+      // livery stripe
+      '<rect x="' + (n*0.55) + '" y="20" width="' + (L - n*0.55 - 2) + '" height="3.2" rx="1.6" fill="' + train.stripe + '"/>' +
+      // nose tip accent
+      '<path d="M 2,25 C ' + (n*0.42) + ',25 ' + (n*0.6) + ',10.5 ' + (n*0.85) + ',8.8 ' +
+      'L ' + (n*0.85) + ',11 C ' + (n*0.6) + ',12.5 ' + (n*0.45) + ',26.5 ' + 8 + ',26.5 Z" fill="' + train.stripe + '" opacity="0.85"/>' +
+      // bogies
+      '<rect x="' + (n*0.9) + '" y="29" width="26" height="4" rx="1.6" fill="#2A2F38"/>' +
+      '<rect x="' + (L-46) + '" y="29" width="26" height="4" rx="1.6" fill="#2A2F38"/>';
+
+    sl.innerHTML =
+      '<line x1="-46" y1="13" x2="-14" y2="13" stroke="' + train.accent + '" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="-38" y1="20" x2="-8"  y2="20" stroke="' + train.accent + '" stroke-width="2" stroke-linecap="round"/>' +
+      '<line x1="-50" y1="27" x2="-20" y2="27" stroke="' + train.accent + '" stroke-width="2" stroke-linecap="round"/>';
+    sl.setAttribute('opacity', '0');
+  }
+
+  // ============ train selection ============
+  function buildSelect() {
+    var sel = $('trainSelect'), groups = {};
+    TRAINS.forEach(function (t) {
+      if (!groups[t.group]) {
+        var og = document.createElement('optgroup');
+        og.label = t.group;
+        sel.appendChild(og);
+        groups[t.group] = og;
+      }
+      var o = document.createElement('option');
+      o.value = t.id;
+      o.textContent = t.id === 'custom' ? 'Custom' : t.name + ' · ' + t.rated + ' km/h';
+      groups[t.group].appendChild(o);
+    });
+    sel.value = train.id;
+  }
+
+  function applyTrain() {
+    document.documentElement.style.setProperty('--accent', train.accent);
+    $('trainName').textContent = train.name;
+    $('trainSub').textContent = train.id === 'custom'
+      ? 'Rated ' + ratedKmh() + ' km/h'
+      : train.line + ' · rated ' + train.rated + ' km/h';
+    $('customRow').style.display = train.id === 'custom' ? 'flex' : 'none';
+    drawTrain();
+    drawDial();
+    drawChart();
+  }
+
+  $('trainSelect').addEventListener('change', function (e) {
+    var found = TRAINS.filter(function (t) { return t.id === e.target.value; })[0];
+    if (found) { train = found; applyTrain(); }
+  });
+  $('customMax').addEventListener('input', function () {
+    if (train.id === 'custom') {
+      $('trainSub').textContent = 'Rated ' + ratedKmh() + ' km/h';
+      drawDial();
+    }
+  });
+  $('autoScale').addEventListener('change', function (e) {
+    autoScale = e.target.checked;
+    drawDial();
+  });
 
   function setUnit(u) {
     unit = u;
@@ -431,19 +515,19 @@
     $('avgUnit').textContent = speedUnitLabel();
     $('maxUnit').textContent = speedUnitLabel();
     $('distUnit').textContent = distUnitLabel();
-    scaleMax = pickScale();
-    drawTicks();
+    drawDial();
     renderStats();
     drawChart();
   }
+  $('btnKmh').addEventListener('click', function () { setUnit('kmh'); });
+  $('btnMph').addEventListener('click', function () { setUnit('mph'); });
 
-  // ---------- geo ----------
+  // ============ geolocation ============
   function haversine(a, b) {
-    var R6 = 6371000, toRad = Math.PI / 180;
-    var dLat = (b.lat - a.lat) * toRad, dLon = (b.lon - a.lon) * toRad;
-    var la1 = a.lat * toRad, la2 = b.lat * toRad;
-    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(la1) * Math.cos(la2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    var R6 = 6371000, k = Math.PI / 180;
+    var dLat = (b.lat - a.lat) * k, dLon = (b.lon - a.lon) * k;
+    var la1 = a.lat * k, la2 = b.lat * k;
+    var h = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)*Math.sin(dLon/2);
     return 2 * R6 * Math.asin(Math.sqrt(h));
   }
 
@@ -452,53 +536,95 @@
     var now = pos.timestamp || Date.now();
     var fix = { lat: c.latitude, lon: c.longitude, t: now, acc: c.accuracy };
 
-    var speed = (typeof c.speed === 'number' && c.speed >= 0) ? c.speed : null;
-    var step = 0;
+    // 1. discard fixes the receiver itself has no confidence in
+    if (!isFinite(c.accuracy) || c.accuracy > MAX_ACC) {
+      updateSignal(c.accuracy, 'weak');
+      lastFix = null;             // don't bridge across a bad fix
+      reacquiredAt = now;
+      return;
+    }
 
-    if (lastFix) {
-      var dt = (now - lastFix.t) / 1000;
-      if (dt > 0.2 && dt < 30) {
-        var d = haversine(lastFix, fix);
-        if (c.accuracy <= MAX_ACCURACY && d > c.accuracy * 0.5) step = d;
-        if (speed === null) speed = d / dt;   // fallback when the device gives no speed
+    var dt = lastFix ? (now - lastFix.t) / 1000 : null;
+
+    // 2. a long gap means the receiver just re-acquired (tunnel exit) — restart cleanly
+    if (dt === null || dt > MAX_GAP || dt <= 0) {
+      lastFix = fix;
+      reacquiredAt = now;
+      updateSignal(c.accuracy, 'reacquired');
+      return;
+    }
+
+    // 3. prefer the receiver's Doppler speed; fall back to position delta only when it's sane
+    var step = haversine(lastFix, fix);
+    var speed = (typeof c.speed === 'number' && c.speed >= 0 && isFinite(c.speed)) ? c.speed : null;
+    var fallback = step / dt;
+
+    if (speed === null) {
+      if (step < c.accuracy * 0.8) fallback = 0;   // movement smaller than the error bar
+      speed = fallback;
+    }
+
+    // 4. hard physical ceiling
+    if (speed > HARD_MAX) { lastFix = fix; return; }
+
+    // 5. acceleration gate — kills the post-tunnel jump even when it clears the ceiling.
+    //    The first accepted fix seeds the gate, so starting mid-journey at 285 km/h is fine.
+    if (lastGoodSpeed === null) {
+      lastGoodSpeed = speed;
+    } else {
+      var settling = (now - reacquiredAt) < SETTLE_MS;
+      var maxDelta = MAX_ACCEL * dt;
+      if (Math.abs(speed - lastGoodSpeed) > maxDelta) {
+        if (settling) { lastFix = fix; return; }   // distrust, don't adopt
+        speed = lastGoodSpeed + Math.sign(speed - lastGoodSpeed) * maxDelta;
       }
     }
-    if (speed === null) speed = 0;
-    if (speed < NOISE_FLOOR) { speed = 0; step = 0; }
 
+    if (speed < NOISE_FLOOR) speed = 0;
+
+    // 6. distance: only credit movement consistent with the accepted speed
+    if (step <= speed * dt * 1.6 + c.accuracy * 0.5 && speed > 0) distance += step;
+
+    lastGoodSpeed = speed;
     rawSpeed = speed;
-    distance += step;
-    if (speed > topSpeed) topSpeed = speed;
+    if (speed > topSpeed) {
+      topSpeed = speed;
+      if (autoScale) drawDial();
+    }
 
     samples.push({ t: now, v: speed });
     var cutoff = now - WINDOW_MS * 1.2;
     while (samples.length && samples[0].t < cutoff) samples.shift();
 
     lastFix = fix;
-    updateSignal(c.accuracy);
-
-    var want = pickScale();
-    if (want !== scaleMax) { scaleMax = want; drawTicks(); }
+    updateSignal(c.accuracy, 'ok');
   }
 
   function onError(err) {
     stop();
     if (err.code === 1) {
       showMessage('Location access is off',
-        'Tap the ⌵ in the address bar → Website Settings → Location → Allow, then reload. In the Home Screen app, check Settings → Privacy & Security → Location Services.');
+        'Tap the ⌵ in Safari\u2019s address bar → Website Settings → Location → Allow, then reload. From the Home Screen icon, check Settings → Privacy & Security → Location Services.');
     } else if (err.code === 2) {
-      showMessage('No position available', 'Move somewhere with a clearer view of the sky and start again.');
+      showMessage('No position available', 'Sit near a window if you can, then start again.');
     } else {
-      showMessage('Location timed out', 'The device took too long to get a fix. Try starting again.');
+      showMessage('Location timed out', 'The receiver took too long to get a fix. Start again.');
     }
   }
 
-  function updateSignal(acc) {
-    elDot.className = 'dot ' + (acc <= 10 ? 'good' : acc <= 30 ? 'fair' : 'poor');
-    elSignal.textContent = '±' + Math.round(acc) + ' m';
+  function updateSignal(acc, state) {
+    if (state === 'weak') {
+      elDot.className = 'dot poor';
+      elSignal.textContent = 'Weak signal';
+    } else if (state === 'reacquired') {
+      elDot.className = 'dot fair';
+      elSignal.textContent = 'Re-acquiring';
+    } else {
+      elDot.className = 'dot ' + (acc <= 12 ? 'good' : acc <= 30 ? 'fair' : 'poor');
+      elSignal.textContent = '±' + Math.round(acc) + ' m';
+    }
   }
 
-  // ---------- messages ----------
   function showMessage(title, body) {
     elMsg.innerHTML = '';
     var s = document.createElement('strong');
@@ -509,7 +635,6 @@
   }
   function clearMessage() { elMsg.classList.remove('show'); }
 
-  // ---------- wake lock ----------
   function requestWakeLock() {
     if (!('wakeLock' in navigator)) return;
     navigator.wakeLock.request('screen').then(function (l) {
@@ -521,27 +646,26 @@
     if (document.visibilityState === 'visible' && tracking && !wakeLock) requestWakeLock();
   });
 
-  // ---------- start / stop / reset ----------
   function start() {
     if (!('geolocation' in navigator)) {
-      showMessage('This browser has no location support', 'Open the page in Safari on your iPhone.');
+      showMessage('No location support in this browser', 'Open the page in Safari on your iPhone.');
       return;
     }
     if (!window.isSecureContext) {
       showMessage('Location needs a secure connection',
-        'Serve this page over https:// (GitHub Pages works) or open it at localhost. Location is blocked on plain http.');
+        'Serve the page over https:// (GitHub Pages works) or open it at localhost. Location is blocked on plain http.');
       return;
     }
     clearMessage();
     tracking = true;
     startedAt = Date.now();
-    lastFix = null;
+    lastFix = null; lastGoodSpeed = null; reacquiredAt = Date.now();
     elStart.textContent = 'Pause';
     elStart.classList.add('stop');
     elReset.disabled = false;
     elSignal.textContent = 'Finding you…';
     watchId = navigator.geolocation.watchPosition(onPosition, onError, {
-      enableHighAccuracy: true, maximumAge: 0, timeout: 20000
+      enableHighAccuracy: true, maximumAge: 0, timeout: 25000
     });
     requestWakeLock();
   }
@@ -550,8 +674,7 @@
     if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
     if (tracking) elapsed += Date.now() - startedAt;
     tracking = false;
-    rawSpeed = 0;
-    lastFix = null;
+    rawSpeed = 0; lastFix = null; lastGoodSpeed = null;
     elStart.textContent = 'Resume';
     elStart.classList.remove('stop');
     elDot.className = 'dot';
@@ -561,33 +684,30 @@
 
   function reset() {
     stop();
-    samples = []; topSpeed = 0; distance = 0; elapsed = 0;
-    rawSpeed = 0; shownSpeed = 0;
+    samples = []; topSpeed = 0; distance = 0; elapsed = 0; rawSpeed = 0; shownSpeed = 0;
     elStart.textContent = 'Start tracking';
     elReset.disabled = true;
     elSignal.textContent = 'Not tracking';
     clearMessage();
-    scaleMax = scales()[1];
-    drawTicks();
-    renderStats();
-    drawChart();
+    drawDial(); renderStats(); drawChart();
   }
-
   elStart.addEventListener('click', function () { tracking ? stop() : start(); });
   elReset.addEventListener('click', reset);
-  $('btnKmh').addEventListener('click', function () { setUnit('kmh'); });
-  $('btnMph').addEventListener('click', function () { setUnit('mph'); });
 
-  // ---------- chart ----------
+  // ============ chart ============
   function sizeCanvas() {
     var dpr = window.devicePixelRatio || 1;
-    var w = canvas.clientWidth, h = canvas.clientHeight;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
+    canvas.width = Math.round(canvas.clientWidth * dpr);
+    canvas.height = Math.round(canvas.clientHeight * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawChart();
   }
   window.addEventListener('resize', sizeCanvas);
+
+  function hexToRgb(h) {
+    var m = h.replace('#','');
+    return [parseInt(m.substr(0,2),16), parseInt(m.substr(2,2),16), parseInt(m.substr(4,2),16)];
+  }
 
   function drawChart() {
     var w = canvas.clientWidth, h = canvas.clientHeight;
@@ -595,88 +715,83 @@
     ctx.clearRect(0, 0, w, h);
 
     var padB = 4, padT = 6;
-    var now = Date.now();
-    var t0 = now - WINDOW_MS;
+    var now = Date.now(), t0 = now - WINDOW_MS;
     var pts = samples.filter(function (s) { return s.t >= t0; });
 
-    // baseline
     ctx.strokeStyle = 'rgba(84,84,88,0.6)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(0, h - padB + 0.5);
-    ctx.lineTo(w, h - padB + 0.5);
-    ctx.stroke();
+    ctx.moveTo(0, h - padB + 0.5); ctx.lineTo(w, h - padB + 0.5); ctx.stroke();
 
     if (pts.length < 2) {
       ctx.fillStyle = 'rgba(235,235,245,0.3)';
       ctx.font = '500 13px -apple-system, system-ui, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(tracking ? 'Waiting for movement' : 'Start tracking to record a trace', w / 2, h / 2);
+      ctx.fillText(tracking ? 'Waiting for movement' : 'Start tracking to record a trace', w/2, h/2);
       return;
     }
 
-    var peak = 0;
-    pts.forEach(function (s) { if (s.v > peak) peak = s.v; });
-    var yMax = Math.max(peak * 1.15, 1);
-
+    // fixed vertical scale = the dial's scale, so the trace is comparable between runs
+    var yMax = scaleMax;
     var x = function (t) { return (t - t0) / WINDOW_MS * w; };
-    var y = function (v) { return (h - padB) - (v / yMax) * (h - padB - padT); };
+    var y = function (v) { return (h - padB) - Math.min(toUnit(v) / yMax, 1) * (h - padB - padT); };
 
-    // area fill
+    // rated-speed reference line
+    var yLimit = y(ratedKmh() / 3.6);   // y() takes m/s
+    ctx.save();
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(255,69,58,0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(0, yLimit); ctx.lineTo(w, yLimit); ctx.stroke();
+    ctx.restore();
+
+    var rgb = hexToRgb(train.accent);
     var grad = ctx.createLinearGradient(0, padT, 0, h);
-    grad.addColorStop(0, 'rgba(48,209,88,0.28)');
-    grad.addColorStop(1, 'rgba(48,209,88,0.0)');
+    grad.addColorStop(0, 'rgba(' + rgb.join(',') + ',0.30)');
+    grad.addColorStop(1, 'rgba(' + rgb.join(',') + ',0)');
     ctx.beginPath();
     ctx.moveTo(x(pts[0].t), h - padB);
     pts.forEach(function (s) { ctx.lineTo(x(s.t), y(s.v)); });
-    ctx.lineTo(x(pts[pts.length - 1].t), h - padB);
+    ctx.lineTo(x(pts[pts.length-1].t), h - padB);
     ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
+    ctx.fillStyle = grad; ctx.fill();
 
-    // line
     ctx.beginPath();
     pts.forEach(function (s, i) { i ? ctx.lineTo(x(s.t), y(s.v)) : ctx.moveTo(x(s.t), y(s.v)); });
-    ctx.strokeStyle = '#30D158';
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
+    ctx.strokeStyle = train.accent;
+    ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     ctx.stroke();
 
-    // head dot
-    var last = pts[pts.length - 1];
+    var last = pts[pts.length-1];
     ctx.beginPath();
-    ctx.arc(x(last.t), y(last.v), 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#30D158';
-    ctx.fill();
+    ctx.arc(x(last.t), y(last.v), 3.5, 0, Math.PI*2);
+    ctx.fillStyle = train.accent; ctx.fill();
 
-    // peak label
+    var peak = 0;
+    pts.forEach(function (s) { if (s.v > peak) peak = s.v; });
     ctx.fillStyle = 'rgba(235,235,245,0.45)';
     ctx.font = '500 11px -apple-system, system-ui, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(Math.round(toUnit(peak)) + ' ' + speedUnitLabel(), 2, padT + 8);
+    ctx.fillText('peak ' + Math.round(toUnit(peak)) + ' ' + speedUnitLabel(), 2, padT + 8);
   }
 
-  // ---------- stats ----------
+  // ============ stats ============
   function fmtDuration(ms) {
-    var s = Math.floor(ms / 1000);
-    var hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60;
-    var pad = function (n) { return n < 10 ? '0' + n : String(n); };
-    return hh ? hh + ':' + pad(mm) + ':' + pad(ss) : mm + ':' + pad(ss);
+    var s = Math.floor(ms/1000), hh = Math.floor(s/3600), mm = Math.floor((s%3600)/60), ss = s%60;
+    var p = function (n) { return n < 10 ? '0'+n : String(n); };
+    return hh ? hh + ':' + p(mm) + ':' + p(ss) : mm + ':' + p(ss);
   }
-
   function totalElapsed() { return elapsed + (tracking ? Date.now() - startedAt : 0); }
-
   function renderStats() {
     var ms = totalElapsed();
-    var avgMs = ms > 1000 ? distance / (ms / 1000) : 0;
-    elAvg.firstChild.nodeValue = (toUnit(avgMs)).toFixed(1);
-    elMax.firstChild.nodeValue = (toUnit(topSpeed)).toFixed(1);
-    elDist.firstChild.nodeValue = (toDistUnit(distance)).toFixed(2);
+    var avgMs = ms > 1000 ? distance / (ms/1000) : 0;
+    elAvg.firstChild.nodeValue = toUnit(avgMs).toFixed(1);
+    elMax.firstChild.nodeValue = toUnit(topSpeed).toFixed(1);
+    elDist.firstChild.nodeValue = toDistUnit(distance).toFixed(2);
     elTime.textContent = fmtDuration(ms);
   }
 
-  // ---------- render loop ----------
+  // ============ loop ============
   var lastChart = 0;
   function frame(ts) {
     shownSpeed += (rawSpeed - shownSpeed) * SMOOTHING;
@@ -687,14 +802,27 @@
 
     var frac = Math.min(display / scaleMax, 1);
     elProgress.style.strokeDashoffset = ARC_LEN * (1 - frac);
-    elProgress.style.stroke = frac > 0.85 ? '#FF453A' : frac > 0.65 ? '#FF9F0A' : '#30D158';
+    elProgress.style.stroke = display > ratedInUnit() ? '#FF453A' : train.accent;
+
+    // speed lines behind the train, tied to actual speed
+    var sl = $('speedlines');
+    var ratio = Math.min(display / Math.max(ratedInUnit(), 1), 1.2);
+    if (reduceMotion) {
+      sl.setAttribute('opacity', ratio > 0.05 ? '0.5' : '0');
+    } else {
+      lineDash = (lineDash + ratio * 3.2) % 34;
+      sl.setAttribute('transform', 'translate(' + (-lineDash) + ',0)');
+      sl.setAttribute('opacity', String(Math.min(ratio * 0.9, 0.75)));
+    }
 
     renderStats();
     if (ts - lastChart > 500) { drawChart(); lastChart = ts; }
     requestAnimationFrame(frame);
   }
 
-  // ---------- boot ----------
+  // ============ boot ============
+  buildSelect();
+  applyTrain();
   setUnit('kmh');
   sizeCanvas();
   requestAnimationFrame(frame);
